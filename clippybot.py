@@ -8,30 +8,28 @@ from operator import itemgetter
 
 
 #TO-DO
-# setup mine to be a hourly cooldown
 # shop command to list miners available
 # either make miners "computers" or just make them seb slaves
-
+# store how many miners a player has, calculate cost for them when they run the shop command
+# cost of miner => price = basecost * 1.12^(num_owned)
+#add in gay sound effect when someone leaves if you leave ur gay
 
 intents = nextcord.Intents.default()
 intents.members = True
 
-miner_prices = {'Sneaky Slave':10,
-                'Quoin Counter':100,
-                'Folgies Factory':750,
-                'Beb Bank':10000}
-
-miner_power = {'Sneaky Slave':0.4,
-                'Quoin Counter':5,
-                'Folgies Factory':60,
-                'Beb Bank':700}
 
 #bot id 946836388190498856
-MINE_COOLDOWN = 15
-MINE_MIN = 10
-MINE_MAX = 30
+MINE_COOLDOWN = 60
+MINE_MIN = 5
+MINE_MAX = 15
 cooldowns = dict()
-client = commands.Bot(command_prefix = '$', intents = intents)
+miners = []
+with open('miners.txt') as file:
+    lines = file.readlines()
+    for x in lines:
+        oneminer = x.strip('\n').split(',')
+        miners.append(oneminer)
+
 clippyMsg = ["Nothing is illegal if you don't recognize the authority of the government",
             "Sometimes I watch you sleep",
             "Perhaps it is the file which exists, and you that does not.",
@@ -45,8 +43,7 @@ clippyMsg = ["Nothing is illegal if you don't recognize the authority of the gov
             "yessssssssssssssssssss",
             " "]
 
-#@bot.command()
-#async def command(ctx, arg):
+client = commands.Bot(command_prefix = '$', intents = intents)
 
 @client.command()
 async def info(ctx):
@@ -87,6 +84,13 @@ async def vault(ctx):
             vaultmessage = 'The vault is empty.'
         await ctx.send(vaultmessage)
 
+#@client.command()
+#async def shop(ctx):
+#    shopmessage = '- - - - - - - - - - - - Bebbies Shop - - - - - - - - - - - -'
+#    for individualminer in miners:
+#        shopmessage += f'\n{individualminer[0] : 24} - Produces {individualminer[2] : 10} - Costs {individualminer[1] : 12} bebbies'
+#    await ctx.send(str(shopmessage))
+
 @client.command()
 async def mine(ctx):
     vaultid = str(ctx.author.id)
@@ -98,7 +102,7 @@ async def mine(ctx):
             mine(vaultid, amount, str(ctx.author))
             await ctx.send(f'you mined {amount} bebbies {user.mention}')
         else:
-            await ctx.send(f'too soon man, you gotta wait {MINE_COOLDOWN - (time.time() - cooldowns[vaultid]):.1f} sec before you mine again {user.mention}')
+            await ctx.send(f'too soon man, you gotta wait {(MINE_COOLDOWN - (time.time() - cooldowns[vaultid]))/60:.1f} minutes before you mine again {user.mention}')
     else:
         cooldowns[vaultid] = time.time()
             
@@ -156,7 +160,16 @@ async def on_voice_state_update(member, before, after):
             await asyncio.sleep(.25)
         vc.stop()
         await vc.disconnect()
-    
-    #add in gay sound effect when someone leaves if you leave ur gay
 
-client.run('OTQ2ODM2Mzg4MTkwNDk4ODU2.YhkgGg.szcUNFly3moCylBdaoijIiojdic')
+    elif before.channel and before.channel.id == 968687698363711550 and after.channel and not member.id == client.user.id:
+        vc = await after.channel.connect()
+        await asyncio.sleep(.25)
+        vc.play(nextcord.FFmpegPCMAudio(executable = "ffmpeg-2022-02-24-git-8ef03c2ff1-essentials_build/bin/ffmpeg.exe", source = "hagay.mp3"))
+        while vc.is_playing():
+            await asyncio.sleep(.25)
+        vc.stop()
+        await vc.disconnect()
+    
+    
+
+client.run('OTY4NTc0MDY2MDc0MjEwMzE0.Ymg05A.hfW9WDiZmNV_uoFhFiXChpT0ewU')
