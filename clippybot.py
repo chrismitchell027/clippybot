@@ -105,9 +105,9 @@ async def mine(ctx):
             await ctx.send(f'too soon man, you gotta wait {(MINE_COOLDOWN - (time.time() - cooldowns[vaultid]))/60:.1f} minutes before you mine again {user.mention}')
     else:
         cooldowns[vaultid] = time.time()
-            
+
         amount = randrange(MINE_MIN, MINE_MAX)
-        mine(vaultid, amount, str(ctx.author))  
+        mine(vaultid, amount, str(ctx.author))
         await ctx.send(f'you mined {amount} bebbies {user.mention}')
 
 def mine(user, amount, username):
@@ -133,7 +133,22 @@ def get_balance(user):
         else:
             return 0
 
+def set_balance(userid, amt, username):
+    vaultname = ''
+    for x in range(len(username) - 5):
+        vaultname += username[x]
+    with shelve.open('BebbiesVault') as shelf:
+        shelf[userid] = (float(amt), vaultname)
 
+@client.command()
+async def send(ctx, user: nextcord.User, amt: float):
+    if user and amt:
+        bal = get_balance(str(ctx.author.id))
+        if bal >= amt:
+            user_bal = get_balance(str(user.id))
+            set_balance(str(user.id), user_bal + amt, str(user))
+            set_balance(str(ctx.author.id), bal - amt, str(ctx.author))
+            await ctx.send(f"You have sent {amt} bebbies to {user.mention}")
 
 @client.event
 async def on_ready():
@@ -161,7 +176,7 @@ async def on_voice_state_update(member, before, after):
         vc.stop()
         await vc.disconnect()
 
-    elif before.channel and before.channel.id == 968687698363711550 and after.channel and not member.id == client.user.id:
+    elif before.channel and before.channel.id == 929075584020127834 and after.channel and not member.id == client.user.id:
         vc = await after.channel.connect()
         await asyncio.sleep(.25)
         vc.play(nextcord.FFmpegPCMAudio(executable = "ffmpeg-2022-02-24-git-8ef03c2ff1-essentials_build/bin/ffmpeg.exe", source = "hagay.mp3"))
@@ -169,7 +184,8 @@ async def on_voice_state_update(member, before, after):
             await asyncio.sleep(.25)
         vc.stop()
         await vc.disconnect()
-    
-    
 
-client.run('OTY4NTc0MDY2MDc0MjEwMzE0.Ymg05A.hfW9WDiZmNV_uoFhFiXChpT0ewU')
+
+
+client.run('OTQ2ODM2Mzg4MTkwNDk4ODU2.YhkgGg.szcUNFly3moCylBdaoijIiojdic')
+
