@@ -1,5 +1,6 @@
 import nextcord
 from nextcord.ext import commands
+from nextcord.ext import tasks
 import time
 import shelve
 from random import randrange
@@ -12,16 +13,17 @@ from operator import itemgetter
 # either make miners "computers" or just make them seb slaves
 # store how many miners a player has, calculate cost for them when they run the shop command
 # cost of miner => price = basecost * 1.12^(num_owned)
-#add in gay sound effect when someone leaves if you leave ur gay
+# shop buttons to show individual prices privately
+# find a way to save how much of each miner a user has in itemvault
 
 intents = nextcord.Intents.default()
 intents.members = True
 
 
 #bot id 946836388190498856
-MINE_COOLDOWN = 60
-MINE_MIN = 5
-MINE_MAX = 15
+MINE_COOLDOWN = 3600
+MINE_MIN = 300
+MINE_MAX = 900
 cooldowns = dict()
 miners = []
 with open('miners.txt') as file:
@@ -84,12 +86,60 @@ async def vault(ctx):
             vaultmessage = 'The vault is empty.'
         await ctx.send(vaultmessage)
 
-#@client.command()
-#async def shop(ctx):
-#    shopmessage = '- - - - - - - - - - - - Bebbies Shop - - - - - - - - - - - -'
-#    for individualminer in miners:
-#        shopmessage += f'\n{individualminer[0] : 24} - Produces {individualminer[2] : 10} - Costs {individualminer[1] : 12} bebbies'
-#    await ctx.send(str(shopmessage))
+def get_cost(user, item):
+    basePrice = miners[item][1]
+    #get amount owned by user
+    #calculate and return custom cost
+    pass
+
+@client.command()
+async def shop(ctx):
+    shopmessage = '- - - - - - - - - - - - Bebbies Shop - - - - - - - - - - - -'
+    shopembed = nextcord.Embed(title = "Bebbies Shop", color=0x00daff)
+    num = 0
+    for individualminer in miners:
+        num += 1
+        space = ' '
+        minernameLength = 24 - len(individualminer[0])
+        productionLength = 10 - len(individualminer[2])
+        costLength = 12 - len(individualminer[1])
+        shopembed.add_field(name=('Tier '+str(num)), value= f'{individualminer[0]}\nProduction: {float(individualminer[2]):,}/second\nCost: {float(individualminer[1]):,} bebbies')
+    await ctx.send(embed = shopembed)
+
+@client.command() 
+async def buy(ctx, itemid):
+    vaultid = str(ctx.author.id)
+    user = ctx.author
+    itemid -= 1
+    itemPrice = get_cost(vaultid, itemid)
+    with shelve.open('itemvault') as vault:
+        if vaultid in vault:
+            if get_balance(vaultid) >= itemPrice:
+                set_balance(vaultid, get_balance(vaultid) - itemPrice)
+                vault[vaultid] += 1
+                await ctx.send(f"{user.mention} has purchased a(n) {miners[itemid][0]}")
+            else:
+                await ctx.send(f"{user.mention} is a broke boy and doesn't have {itemPrice} bebbies")
+        else:
+            if get_balance(vaultid) >= get_cost(vaultid):
+                set_balance(vaultid, get_balance(vaultid) - itemPrice)
+                vault[vaultid] = 1
+                await ctx.send(f"{user.mention} has purchased a(n) {miners[itemid][0]}")
+            else:
+                await ctx.send(f"{user.mention} is a broke boy and doesn't have {itemPrice} bebbies")
+
+
+
+
+
+@client.command()
+async def inventory(ctx):
+    vaultid = str(ctx.author.id)
+    user = ctx.author
+    with shelve.open('itemvault') as vault:
+        if vaultid in vault:
+            pass
+            #await ctx.send(f'{user.mention} has {}')
 
 @client.command()
 async def mine(ctx):
@@ -99,7 +149,7 @@ async def mine(ctx):
         if time.time() - cooldowns[vaultid] >= MINE_COOLDOWN: #if user is ready to mine again
             cooldowns[vaultid] = time.time() #reset cooldown
             amount = randrange(MINE_MIN, MINE_MAX) #generate amount mined
-            mine(vaultid, amount, str(ctx.author))
+            mine(vaultid, amount, str(user))
             await ctx.send(f'you mined {amount} bebbies {user.mention}')
         else:
             await ctx.send(f'too soon man, you gotta wait {(MINE_COOLDOWN - (time.time() - cooldowns[vaultid]))/60:.1f} minutes before you mine again {user.mention}')
@@ -186,14 +236,19 @@ async def on_voice_state_update(member, before, after):
         vc.stop()
         await vc.disconnect()
 
-@info.error
-async def info_error(ctx, error):
-    if isinstance(ctx, commands.MissingRequiredArgument):
-        if ctx.command == send:
-            await ctx.send('Usage: $send <@user> <amount>')
-        else:
-            await ctx.send('Missing required arguments')
-            print('MISSING REQUIRED ARGUMENTS FOR COMMAND CALLED')
+#looping for bebbies
+@tasks.loop(seconds=5.0)
+async def miner_income():
+    pass
+
+miner_income.start()
+
+@send.error
+async def send_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Usage: $send [@user] [amount]')
+
+
 
 client.run('OTY4NTc0MDY2MDc0MjEwMzE0.Ymg05A.hfW9WDiZmNV_uoFhFiXChpT0ewU')
 
