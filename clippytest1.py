@@ -8,23 +8,35 @@ import asyncio
 from operator import itemgetter
 
 
-#TO-DO
-# shop command to list miners available
-# either make miners "computers" or just make them seb slaves
-# store how many miners a player has, calculate cost for them when they run the shop command
-# cost of miner => price = basecost * 1.12^(num_owned)
-# shop buttons to show individual prices privately
-# find a way to save how much of each miner a user has in itemvault
-
-intents = nextcord.Intents.default()
-intents.members = True
+# TO-DO
+#   shop command to list miners available
+#   either make miners "computers" or just make them seb slaves
+#   store how many miners a player has, calculate cost for them when they run the shop command
+#   cost of miner => price = basecost * 1.12^(num_owned)
+#   shop buttons to show individual prices privately
 
 
-#bot id 946836388190498856
-MINE_COOLDOWN = 3600
+# INVENTORY VAULT INFORMATION:
+#   dictionary with key = vaultid and values of lists: 
+#   itemvault = {
+#               'vaultid1' : [quantity, quantity, ... ]}
+#   list index represents which item it is (numbers match up with the shop number - 1)
+
+
+# variables for the $mine command
+MINE_COOLDOWN = 3600 # (seconds)
 MINE_MIN = 300
 MINE_MAX = 900
-cooldowns = dict()
+cooldowns = dict() 
+
+# other variables
+embedBlue = 0x00daff
+
+
+# miners stores information about each miner in a list
+#   miners[itemid][0] = name
+#   miners[itemid][1] = cost
+#   miners[itemid][2] = base price
 miners = []
 with open('miners.txt') as file:
     lines = file.readlines()
@@ -32,6 +44,7 @@ with open('miners.txt') as file:
         oneminer = x.strip('\n').split(',')
         miners.append(oneminer)
 
+# clippy's various messages
 clippyMsg = ["Nothing is illegal if you don't recognize the authority of the government",
             "Sometimes I watch you sleep",
             "Perhaps it is the file which exists, and you that does not.",
@@ -45,8 +58,26 @@ clippyMsg = ["Nothing is illegal if you don't recognize the authority of the gov
             "yessssssssssssssssssss",
             " "]
 
+#This is what will be printed by $inventory
+# other functions get the miner name from miners[itemid][0]
+minerIDs = {0:'Sneaky Slave',
+            1:'Quoin Counter',
+            2:'Beb Miner',
+            3:'Folgies Factory',
+            4:'Beaky Bank',
+            5:'Seb Shipment',
+            6:'Alchemist Ashton',
+            7:'ATDPortal',
+            8:'Sheckle Shiller',
+            9:'Bebastian Plantation',
+            10:'Joe Miner'}
+
+intents = nextcord.Intents.default()
+intents.members = True
+
 client = commands.Bot(command_prefix = '$', intents = intents)
 
+# NEEDS TO BE UPDATED FOR NEW COMMANDS, POSSIBLY FIND WAY TO READ FROM TEXT FILE
 @client.command()
 async def info(ctx):
     await ctx.send("Info\n$clippy - Talk to clippy\n$beb - Let beb know you need his attention\n$richest - See the richest bebbies in the server\n$vault - See what's in the vault\n$mine - Mine some bebbies\n$balance - See how many bebbies you have")
@@ -87,22 +118,17 @@ async def vault(ctx):
         await ctx.send(vaultmessage)
 
 def get_cost(user, item):
-    basePrice = miners[item][1]
+    basePrice = int(miners[item][1])
     #get amount owned by user
     #calculate and return custom cost
-    pass
+    return basePrice
 
 @client.command()
 async def shop(ctx):
-    shopmessage = '- - - - - - - - - - - - Bebbies Shop - - - - - - - - - - - -'
-    shopembed = nextcord.Embed(title = "Bebbies Shop", color=0x00daff)
+    shopembed = nextcord.Embed(title = "Bebbies Shop", color=embedBlue)
     num = 0
     for individualminer in miners:
         num += 1
-        space = ' '
-        minernameLength = 24 - len(individualminer[0])
-        productionLength = 10 - len(individualminer[2])
-        costLength = 12 - len(individualminer[1])
         shopembed.add_field(name=('Tier '+str(num)), value= f'{individualminer[0]}\nProduction: {float(individualminer[2]):,}/second\nCost: {float(individualminer[1]):,} bebbies')
     await ctx.send(embed = shopembed)
 
@@ -110,36 +136,57 @@ async def shop(ctx):
 async def buy(ctx, itemid):
     vaultid = str(ctx.author.id)
     user = ctx.author
-    itemid -= 1
+    username = str(user)
+    itemid = int(itemid) - 1
     itemPrice = get_cost(vaultid, itemid)
-    with shelve.open('itemvault') as vault:
-        if vaultid in vault:
+    with shelve.open('itemvault') as inventory:
+        if vaultid in inventory:
             if get_balance(vaultid) >= itemPrice:
-                set_balance(vaultid, get_balance(vaultid) - itemPrice)
-                vault[vaultid] += 1
-                await ctx.send(f"{user.mention} has purchased a(n) {miners[itemid][0]}")
+                print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                set_balance(vaultid, get_balance(vaultid) - itemPrice, username)
+
+                newInventory = []
+                for x in range(len(miners)):
+                    if itemid == x:
+                        newInventory.append(1 + inventory[vaultid][itemid])
+                    else:
+                        newInventory.append(inventory[vaultid][x])
+                inventory[vaultid] = newInventory
+
+                await ctx.send(f"{user.mention} has purchased a(n) {minerIDs[itemid]}")
             else:
                 await ctx.send(f"{user.mention} is a broke boy and doesn't have {itemPrice} bebbies")
         else:
-            if get_balance(vaultid) >= get_cost(vaultid):
-                set_balance(vaultid, get_balance(vaultid) - itemPrice)
-                vault[vaultid] = 1
-                await ctx.send(f"{user.mention} has purchased a(n) {miners[itemid][0]}")
+            if get_balance(vaultid) >= get_cost(vaultid, itemid):
+                set_balance(vaultid, get_balance(vaultid) - itemPrice, username)
+                newInventory = []
+                for x in range(len(miners)):
+                    if itemid == x:
+                        newInventory.append(1)
+                    else:
+                        newInventory.append(0)
+                inventory[vaultid] = newInventory
+                await ctx.send(f"{user.mention} has purchased a(n) {minerIDs[itemid]}")
             else:
                 await ctx.send(f"{user.mention} is a broke boy and doesn't have {itemPrice} bebbies")
-
-
-
-
 
 @client.command()
 async def inventory(ctx):
     vaultid = str(ctx.author.id)
     user = ctx.author
-    with shelve.open('itemvault') as vault:
-        if vaultid in vault:
-            pass
-            #await ctx.send(f'{user.mention} has {}')
+    with shelve.open('itemvault') as inventory:
+        if vaultid in inventory:
+            invEmbed = nextcord.Embed(title = f'Inventory', color=embedBlue)
+            i = 0
+            invMessage = ''
+            for item in inventory[vaultid]:
+                if item > 0:
+                    invMessage += f'[{item}] {minerIDs[i]}'
+                i += 1
+            invEmbed.add_field(name='Miners',value=str(invMessage))
+            await ctx.send(embed = invEmbed)
+        else:
+            await ctx.send(f'You have nothing.')
 
 @client.command()
 async def mine(ctx):
@@ -247,6 +294,11 @@ miner_income.start()
 async def send_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Usage: $send [@user] [amount]')
+
+@buy.error
+async def buy_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Usage: $buy [itemid from shop]')
 
 
 
