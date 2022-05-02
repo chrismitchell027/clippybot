@@ -38,7 +38,7 @@ class Player():
         self.__active = status
 
     def get_balance(self):
-        return self.__balance
+        return round(self.__balance, 2)
 
     def set_balance(self, amount):
         self.__balance = amount
