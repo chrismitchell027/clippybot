@@ -73,7 +73,7 @@ class Player():
             minerProduction = miners[x][2]
             quantityOwned = self.__inventory[x]
             income += minerProduction * quantityOwned
-        return income
+        return round(income,2)
 
 #if __name__ == '__main__':
 #    pass
