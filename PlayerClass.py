@@ -15,7 +15,7 @@ class Player():
     def __init__(self, userID, username):
         self.__userID = userID
         self.__username = username
-        self.__balance = 0
+        self.__balance = 0.0
         self.__inventory = []
         for x in range(len(miners)):
             self.__inventory.append(0)
@@ -55,6 +55,9 @@ class Player():
 
     def get_inventory(self): #returns inventory list
         return self.__inventory
+
+    def set_inventory(self, inventory):
+        self.__inventory = inventory
 
     def get_income(self):
         income = 0
