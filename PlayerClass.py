@@ -17,6 +17,8 @@ class Player():
         self.__username = username
         self.__balance = 0.0
         self.__inventory = []
+        self.__active = False
+
         for x in range(len(miners)):
             self.__inventory.append(0)
         
@@ -28,6 +30,12 @@ class Player():
 
     def set_username(self, name):
         self.__username = name
+
+    def get_active(self):
+        return self.__active
+
+    def set_active(self, status: bool):
+        self.__active = status
 
     def get_balance(self):
         return self.__balance
