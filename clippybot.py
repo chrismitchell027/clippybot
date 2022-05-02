@@ -100,11 +100,7 @@ async def clippy(ctx):
 # ------------------------------------------------------------------------
 #                   RESET ACTIVITY STATUS OF MEMBERS
 # ------------------------------------------------------------------------
-with shelve.open('PlayerVault') as vault:
-    for userID in vault:
-        tempPlayer = vault[userID]
-        tempPlayer.set_active(False)
-        vault[userID] = tempPlayer
+
 # ------------------------------------------------------------------------
 #
 # ---- BEBBIES COMMANDS --------------------------------------------------
@@ -171,7 +167,7 @@ async def balance(ctx):
 async def send(ctx, user: nextcord.User, amt: float):
     userID = str(ctx.author.id)
     recipientID = str(user.id)
-    if user and amt:
+    if user and amt > 0:
         with shelve.open('PlayerVault') as vault:
             if userID in vault:
                 sendPlayer = vault[userID]
@@ -330,32 +326,6 @@ async def on_voice_state_update(member, before, after):
         vc.stop()
         await vc.disconnect()
 
-    # if a user joins a channel besides AFK, set them active
-    if after.channel and after.channel.id != 402257227555143701 and not member.id == client.user.id:
-        userID = str(member.id)
-        with shelve.open('PlayerVault') as vault:
-            if userID in vault:
-                tempPlayer = vault[userID]
-                tempPlayer.set_active(True)
-                vault[userID] = tempPlayer
-    
-    # if a user leaves, set inactive
-    if before.channel and not after.channel and not member.id == client.user.id:
-        userID = str(member.id)
-        with shelve.open('PlayerVault') as vault:
-            if userID in vault:
-                tempPlayer = vault[userID]
-                tempPlayer.set_active(False)
-                vault[userID] = tempPlayer
-    
-    # if a user joins AFK, set inactive
-    if after.channel and after.channel.id == 402257227555143701 and not member.id == client.user.id:
-        userID = str(member.id)
-        with shelve.open('PlayerVault') as vault:
-            if userID in vault:
-                tempPlayer = vault[userID]
-                tempPlayer.set_active(False)
-                vault[userID] = tempPlayer
 
 
 
@@ -368,9 +338,8 @@ async def miner_income():
     with shelve.open('PlayerVault') as vault:
         for userID in vault:
             tempPlayer = vault[userID]
-            if tempPlayer.get_active():
-                tempPlayer.add_balance(float(tempPlayer.get_income() * 5))
-                vault[userID] = tempPlayer
+            tempPlayer.add_balance(float(tempPlayer.get_income() * 5))
+            vault[userID] = tempPlayer
 
 
 miner_income.start()
