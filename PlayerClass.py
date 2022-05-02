@@ -59,7 +59,7 @@ class Player():
         baseCost = miners[itemID][1]
         numOwned = self.__inventory[itemID]
         price = baseCost * (1.12 ** numOwned)
-        return round(price,1)
+        return round(price, 1)
 
     def get_inventory(self): #returns inventory list
         return self.__inventory
