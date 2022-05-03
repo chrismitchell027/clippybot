@@ -159,7 +159,7 @@ async def balance(ctx):
         if userID in vault:
             tempPlayer = vault[userID]
             userBalance = tempPlayer.get_balance()
-            await ctx.send(f'You have {userBalance} bebbies {user.mention}')
+            await ctx.send(f'You have {userBalance:,} bebbies {user.mention}')
         else:
             await ctx.send(registerMsg)
 
@@ -214,7 +214,7 @@ async def mine(ctx):
             vault[userID] = tempPlayer
             await ctx.send(f'you mined {amount} bebbies {user.mention}')
         elif userID in vault:
-            await ctx.send(f'too soon man, you gotta wait {(MINE_COOLDOWN - (time.time() - cooldowns[userID])):.1f} minutes to mine again.')
+            await ctx.send(f'too soon man, you gotta wait {(MINE_COOLDOWN - (time.time() - cooldowns[userID])):.1f} seconds to mine again.')
         else:
             await ctx.send(registerMsg)
             cooldowns.pop(userID)
@@ -301,7 +301,7 @@ async def on_voice_state_update(member, before, after):
         vc = await after.channel.connect()
         #textchannel = client.get_channel(884995892359331850) #bot spam
         await asyncio.sleep(.25)
-        vc.play(nextcord.FFmpegPCMAudio(executable = "ffmpeg-2022-02-24-git-8ef03c2ff1-essentials_build/bin/ffmpeg.exe", source = "welcomeback.mp3"))
+        vc.play(nextcord.FFmpegPCMAudio(source = "welcomeback.mp3"))
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
@@ -311,7 +311,7 @@ async def on_voice_state_update(member, before, after):
         vc = await after.channel.connect()
         #textchannel = client.get_channel(884995892359331850) #bot spam
         await asyncio.sleep(.25)
-        vc.play(nextcord.FFmpegPCMAudio(executable = "ffmpeg-2022-02-24-git-8ef03c2ff1-essentials_build/bin/ffmpeg.exe", source = "welcomeback.mp3"))
+        vc.play(nextcord.FFmpegPCMAudio(source = "welcomeback.mp3"))
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
@@ -320,7 +320,7 @@ async def on_voice_state_update(member, before, after):
     elif before.channel and before.channel.id == 929075584020127834 and after.channel and not member.id == client.user.id:
         vc = await after.channel.connect()
         await asyncio.sleep(.25)
-        vc.play(nextcord.FFmpegPCMAudio(executable = "ffmpeg-2022-02-24-git-8ef03c2ff1-essentials_build/bin/ffmpeg.exe", source = "hagay.mp3"))
+        vc.play(nextcord.FFmpegPCMAudio(source = "hagay.mp3"))
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
