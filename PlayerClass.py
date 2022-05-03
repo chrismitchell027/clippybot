@@ -17,6 +17,7 @@ class Player():
         self.__username = username
         self.__balance = 0.0
         self.__inventory = []
+        self.__income = 0.0
         self.__active = False
 
         for x in range(len(miners)):
@@ -30,6 +31,14 @@ class Player():
 
     def set_username(self, name):
         self.__username = name
+
+    def __reset_income(self):
+        income = 0
+        for x in range(len(self.__inventory)):
+            minerProduction = miners[x][2]
+            quantityOwned = self.__inventory[x]
+            income += minerProduction * quantityOwned
+        self.__income = income
 
     def get_active(self):
         return self.__active
@@ -48,12 +57,16 @@ class Player():
 
     def buy_item(self, itemID):
         price = self.get_price(itemID)
-        if self.__balance >= price:
-            self.add_balance(-price)
-            self.__inventory[itemID] += 1
-            return price
-        else:
-            return 'Did not purchase'
+        self.add_balance(-price)
+        self.__inventory[itemID] += 1
+        self.__income += miners[itemID][2]
+        #if self.__balance >= price:
+        #    self.add_balance(-price)
+        #    self.__inventory[itemID] += 1
+        #    self.__income += miners[itemID][2]
+        #    return True
+        #elif self.__balance < price:
+        #    return False
 
     def get_price(self, itemID):
         baseCost = miners[itemID][1]
@@ -64,15 +77,23 @@ class Player():
     def get_inventory(self): #returns inventory list
         return self.__inventory
 
+    def get_inventoryItem(self, itemID): #returns 1 item in inventory
+        return self.__inventory[itemID]
+
     def set_inventory(self, inventory):
         self.__inventory = inventory
 
     def get_income(self):
         income = 0
-        for x in range(len(self.__inventory)):
-            minerProduction = miners[x][2]
-            quantityOwned = self.__inventory[x]
-            income += minerProduction * quantityOwned
+        try:
+            income = self.__income
+        except AttributeError:
+            self.__reset_income()
+        #income = 0
+        #for x in range(len(self.__inventory)):
+        #    minerProduction = miners[x][2]
+        #    quantityOwned = self.__inventory[x]
+        #    income += minerProduction * quantityOwned
         return round(income,2)
 
 #if __name__ == '__main__':

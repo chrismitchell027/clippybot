@@ -1,4 +1,3 @@
-from operator import itemgetter
 import nextcord
 from nextcord.ext import commands
 from nextcord.ext import tasks
@@ -129,7 +128,7 @@ async def richest(ctx):
             balances.reverse()
             usernames.reverse()
             for x in range(5 if len(balances) > 5 else len(balances)):
-                richestEmbed.add_field(name = str(x + 1), value = f'{usernames[x]} has {balances[x]} bebbies')
+                richestEmbed.add_field(name = str(x + 1), value = f'{usernames[x]} has {balances[x]:,} bebbies')
             await ctx.send(embed = richestEmbed)
         else:
             await ctx.send("You're all broke! Ya mommas broke, ya daddys broke, ya brother broke, ya sister, ya cousins broke, ya auntie broke, seb is broke.")
@@ -142,7 +141,7 @@ async def vault(ctx):
         numPlayersInVault = 0
         for x in vault:
             tempPlayer = vault[x]
-            vaultEmbed.add_field(name=str(numPlayersInVault + 1), value=f'{tempPlayer.get_username()} has {tempPlayer.get_balance()}')
+            vaultEmbed.add_field(name=str(numPlayersInVault + 1), value=f'{tempPlayer.get_username()} has {tempPlayer.get_balance():,}')
             numPlayersInVault += 1
             
         if numPlayersInVault > 0:
@@ -159,7 +158,19 @@ async def balance(ctx):
         if userID in vault:
             tempPlayer = vault[userID]
             userBalance = tempPlayer.get_balance()
-            await ctx.send(f'You have {userBalance:,} bebbies {user.mention}')
+            await ctx.send(f'You have {userBalance:,.1f} bebbies {user.mention}')
+        else:
+            await ctx.send(registerMsg)
+
+@client.command()
+async def bal(ctx):
+    userID = str(ctx.author.id)
+    user = ctx.author
+    with shelve.open('PlayerVault') as vault:
+        if userID in vault:
+            tempPlayer = vault[userID]
+            userBalance = tempPlayer.get_balance()
+            await ctx.send(f'You have {userBalance:,.1f} bebbies {user.mention}')
         else:
             await ctx.send(registerMsg)
 
@@ -181,7 +192,7 @@ async def send(ctx, user: nextcord.User, amt: float):
                         recipientPlayer.add_balance(amt)
                         vault[userID] = sendPlayer
                         vault[recipientID] = recipientPlayer
-                        await ctx.send(f'{ctx.author.mention} has sent {user.mention} {amt} bebbies')            
+                        await ctx.send(f'{ctx.author.mention} has sent {user.mention} {amt:,.1f} bebbies')            
                     else:
                         await ctx.send(f'You do not have enough bebbies to send.')
 
@@ -189,6 +200,8 @@ async def send(ctx, user: nextcord.User, amt: float):
                     await ctx.send(f'Recipient has not registered a bebbies account! Use $register [username] to make a bebbies account.')
             else: #sender not registered
                 await ctx.send(registerMsg)
+    else:
+        await ctx.send('You may not send negative bebbies, Ashton.')
 
 @client.command()
 async def mine(ctx):
@@ -212,7 +225,7 @@ async def mine(ctx):
             tempPlayer = vault[userID]
             tempPlayer.add_balance(amount)
             vault[userID] = tempPlayer
-            await ctx.send(f'you mined {amount} bebbies {user.mention}')
+            await ctx.send(f'you mined {amount:,} bebbies {user.mention}')
         elif userID in vault:
             await ctx.send(f'too soon man, you gotta wait {(MINE_COOLDOWN - (time.time() - cooldowns[userID])):.1f} seconds to mine again.')
         else:
@@ -226,12 +239,20 @@ async def buy(ctx, publicItemID):
     with shelve.open('PlayerVault') as vault:
         if userID in vault:
             tempPlayer = vault[userID]
-            if tempPlayer.buy_item(int(publicItemID) - 1) != 'Did not purchase':
-                await ctx.send(f'{user.mention} bought {minerIDs[int(publicItemID) - 1]}')
+            itemPrice = tempPlayer.get_price(int(publicItemID) - 1)
+
+            if tempPlayer.get_balance() >= tempPlayer.get_price(int(publicItemID) - 1):
+                tempPlayer.buy_item(int(publicItemID) - 1)
+                await ctx.send(f'{user.mention} bought {minerIDs[int(publicItemID) - 1]} for {itemPrice:,.1f}')
                 vault[userID] = tempPlayer
+            #if tempPlayer.buy_item(int(publicItemID) - 1):
+            #    await ctx.send(f'{user.mention} bought {minerIDs[int(publicItemID) - 1]} for {itemPrice:,.1f}')
+            #    vault[userID] = tempPlayer
+            #    print('made it to buy')
             else:
-                await ctx.send(f'{user.mention} is a broke boy and cannot afford a {minerIDs[publicItemID - 1]}')
-        else:
+                await ctx.send(f'{user.mention} is a broke boy and cannot afford a {minerIDs[int(publicItemID) - 1]} for {itemPrice:,.1f} bebbies')
+                print('made it to not buy')
+        elif userID not in vault:
             await ctx.send(registerMsg)
           
 @client.command()
@@ -250,13 +271,55 @@ async def inventory(ctx):
             await ctx.send(registerMsg)
 
 @client.command()
+async def inv(ctx):
+    userID = str(ctx.author.id)
+    #user = ctx.author
+    with shelve.open('PlayerVault') as vault:
+        if userID in vault:
+            tempPlayer = vault[userID]
+            tempInventory = tempPlayer.get_inventory()
+            inventoryEmbed = nextcord.Embed(title = 'Inventory', color=embedBlue)
+            for i in range(len(tempInventory)):
+                inventoryEmbed.add_field(name = str(miners[i][0]), value = f'[{tempInventory[i]}] Owned')
+            await ctx.send(embed = inventoryEmbed)
+        else:
+            await ctx.send(registerMsg)
+
+@client.command()
+async def server(ctx):
+    serverInv = []
+    for i in range(len(miners)):
+        serverInv.append(0)
+    serverIncome = 0.0
+    serverBal = 0.0
+    playerCount = 0
+    with shelve.open('PlayerVault') as vault:
+        for userID in vault:
+            playerCount += 1
+            tempPlayer = vault[userID]
+            playerInv = tempPlayer.get_inventory()
+            serverIncome += tempPlayer.get_income()
+            serverBal += tempPlayer.get_balance()
+            for i in range(len(playerInv)):
+                serverInv[i] += playerInv[i]
+
+        invEmbed = nextcord.Embed(title = 'Server Info', color=embedBlue)
+        invEmbed.add_field(name = 'Income', value = f'{serverIncome:,.1f} bebbies per second')
+        invEmbed.add_field(name = 'Bebbies', value = f'{serverBal:,.1f} bebbies')
+        invEmbed.add_field(name = 'Players', value = f'{playerCount}')
+        for i in range(len(serverInv)):
+            invEmbed.add_field(name = str(miners[i][0]), value = f'[{serverInv[i]}] Owned')
+        
+        await ctx.send(embed = invEmbed)
+
+@client.command()
 async def income(ctx):
     userID = str(ctx.author.id)
     user = ctx.author
     with shelve.open('PlayerVault') as vault:
         if userID in vault:
             tempPlayer = vault[userID]
-            await ctx.send(f'{user.mention} is currently mining {tempPlayer.get_income()} bebbies per second')
+            await ctx.send(f'{user.mention} is currently mining {tempPlayer.get_income():,.1f} bebbies per second')
         else:
             await ctx.send(registerMsg)
 
@@ -270,7 +333,7 @@ async def shop(ctx):
             publicItemID = 0
             for miner in miners:
                 publicItemID += 1
-                shopEmbed.add_field(name = 'Tier ' + str(publicItemID), value = f'{miner[0]}\nProduction: {miner[2]:,} per second\nCost: {tempPlayer.get_price(publicItemID - 1):,} bebbies')
+                shopEmbed.add_field(name = f'Tier {str(publicItemID)} [{tempPlayer.get_inventoryItem(int(publicItemID) - 1)} Owned]', value = f'{miner[0]}\nProduction: {miner[2]:,} per second\nCost: {tempPlayer.get_price(publicItemID - 1):,} bebbies')
             await ctx.send(embed = shopEmbed)
         else:
             await ctx.send(registerMsg)
@@ -365,6 +428,8 @@ async def register_error(ctx, error):
 
 # ------------------------------------------------------------------------
 
+# MAIN BOT
+#client.run('OTQ2ODM2Mzg4MTkwNDk4ODU2.YhkgGg.szcUNFly3moCylBdaoijIiojdic')
 
-client.run('OTQ2ODM2Mzg4MTkwNDk4ODU2.YhkgGg.szcUNFly3moCylBdaoijIiojdic')
-
+# TEST BOT
+client.run('OTY4NTc0MDY2MDc0MjEwMzE0.Ymg05A.hfW9WDiZmNV_uoFhFiXChpT0ewU')
