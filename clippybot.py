@@ -360,6 +360,15 @@ async def sus(ctx):
     vc.stop()
     await vc.disconnect()
 
+@client.command()
+async def augh(ctx):
+    vc = await ctx.author.voice.channel.connect()
+    vc.play(nextcord.FFmpegPCMAudio(source = "augh.mp3"))
+    while vc.is_playing():
+        await asyncio.sleep(.25)
+    vc.stop()
+    await vc.disconnect()
+
 # ------------------------------------------------------------------------
 #
 # ---- EVENTS ------------------------------------------------------------
@@ -375,7 +384,9 @@ async def on_voice_state_update(member, before, after):
         #textchannel = client.get_channel(884995892359331850) #bot spam
         await asyncio.sleep(.25)
         randval = randrange(0, 20)
-        if randval == 0:
+        if member.id == 198935914741760000:
+            vc.play(nextcord.FFmpegAudio(source = "jagger.mp3"))
+        elif randval == 0:
             vc.play(nextcord.FFmpegPCMAudio(source = "imwatchingyou.mp3"))
         elif randval <= 7:
             vc.play(nextcord.FFmpegPCMAudio(source = "Welcome_Back.mp3"))
@@ -391,7 +402,9 @@ async def on_voice_state_update(member, before, after):
         #textchannel = client.get_channel(884995892359331850) #bot spam
         await asyncio.sleep(.25)
         randval = randrange(0, 20)
-        if randval == 0:
+        if member.id == 198935914741760000:
+            vc.play(nextcord.FFmpegAudio(source = "jagger.mp3"))
+        elif randval == 0:
             vc.play(nextcord.FFmpegPCMAudio(source = "imwatchingyou.mp3"))
         elif randval <= 7:
             vc.play(nextcord.FFmpegPCMAudio(source = "Welcome_Back.mp3"))
@@ -455,4 +468,3 @@ client.run('OTQ2ODM2Mzg4MTkwNDk4ODU2.YhkgGg.szcUNFly3moCylBdaoijIiojdic')
 
 # TEST BOT
 #client.run('OTY4NTc0MDY2MDc0MjEwMzE0.Ymg05A.hfW9WDiZmNV_uoFhFiXChpT0ewU')
-
