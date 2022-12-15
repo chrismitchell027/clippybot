@@ -75,6 +75,7 @@ minerIDs = {0:'Sneaky Slave',
 
 intents = nextcord.Intents.default()
 intents.members = True
+intents.message_content = True
 
 client = commands.Bot(command_prefix = '$', intents = intents)
 
@@ -350,6 +351,15 @@ async def register(ctx, username: str):
                 vault[userID] = newPlayer
                 await ctx.send(f'You have been registered as {username}')
 
+@client.command()
+async def sus(ctx):
+    vc = await ctx.author.voice.channel.connect()
+    vc.play(nextcord.FFmpegPCMAudio(source = "amogus.m4a"))
+    while vc.is_playing():
+        await asyncio.sleep(.25)
+    vc.stop()
+    await vc.disconnect()
+
 # ------------------------------------------------------------------------
 #
 # ---- EVENTS ------------------------------------------------------------
@@ -360,21 +370,33 @@ async def on_ready():
 
 @client.event
 async def on_voice_state_update(member, before, after):
-    if not before.channel and after.channel and not member.id == client.user.id:
+    if not before.channel and after.channel and not member.id == client.user.id and not member.id == 159800228088774656:
         vc = await after.channel.connect()
         #textchannel = client.get_channel(884995892359331850) #bot spam
         await asyncio.sleep(.25)
-        vc.play(nextcord.FFmpegPCMAudio(source = "welcomeback.mp3"))
+        randval = randrange(0, 20)
+        if randval == 0:
+            vc.play(nextcord.FFmpegPCMAudio(source = "imwatchingyou.mp3"))
+        elif randval <= 7:
+            vc.play(nextcord.FFmpegPCMAudio(source = "Welcome_Back.mp3"))
+        else:
+            vc.play(nextcord.FFmpegPCMAudio(source = "welcomeback.mp3"))
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
         await vc.disconnect()
 
-    elif before.channel and before.channel.id == 402257227555143701 and after.channel and not member.id == client.user.id:
+    elif before.channel and before.channel.id == 402257227555143701 and after.channel and not member.id == client.user.id and not member.id == 159800228088774656:
         vc = await after.channel.connect()
         #textchannel = client.get_channel(884995892359331850) #bot spam
         await asyncio.sleep(.25)
-        vc.play(nextcord.FFmpegPCMAudio(source = "welcomeback.mp3"))
+        randval = randrange(0, 20)
+        if randval == 0:
+            vc.play(nextcord.FFmpegPCMAudio(source = "imwatchingyou.mp3"))
+        elif randval <= 7:
+            vc.play(nextcord.FFmpegPCMAudio(source = "Welcome_Back.mp3"))
+        else:
+            vc.play(nextcord.FFmpegPCMAudio(source = "welcomeback.mp3"))
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
@@ -429,7 +451,8 @@ async def register_error(ctx, error):
 # ------------------------------------------------------------------------
 
 # MAIN BOT
-#client.run('OTQ2ODM2Mzg4MTkwNDk4ODU2.YhkgGg.szcUNFly3moCylBdaoijIiojdic')
+client.run('OTQ2ODM2Mzg4MTkwNDk4ODU2.YhkgGg.szcUNFly3moCylBdaoijIiojdic')
 
 # TEST BOT
-client.run('OTY4NTc0MDY2MDc0MjEwMzE0.Ymg05A.hfW9WDiZmNV_uoFhFiXChpT0ewU')
+#client.run('OTY4NTc0MDY2MDc0MjEwMzE0.Ymg05A.hfW9WDiZmNV_uoFhFiXChpT0ewU')
+
