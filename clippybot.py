@@ -385,7 +385,7 @@ async def on_voice_state_update(member, before, after):
         await asyncio.sleep(.25)
         randval = randrange(0, 20)
         if member.id == 198935914741760000:
-            vc.play(nextcord.FFmpegAudio(source = "jagger.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "jagger.mp3"))
         elif randval == 0:
             vc.play(nextcord.FFmpegPCMAudio(source = "imwatchingyou.mp3"))
         elif randval <= 7:
@@ -403,7 +403,7 @@ async def on_voice_state_update(member, before, after):
         await asyncio.sleep(.25)
         randval = randrange(0, 20)
         if member.id == 198935914741760000:
-            vc.play(nextcord.FFmpegAudio(source = "jagger.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "jagger.mp3"))
         elif randval == 0:
             vc.play(nextcord.FFmpegPCMAudio(source = "imwatchingyou.mp3"))
         elif randval <= 7:
