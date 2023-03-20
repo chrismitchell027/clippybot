@@ -369,6 +369,19 @@ async def augh(ctx):
     vc.stop()
     await vc.disconnect()
 
+@client.command()
+async def pbnj(ctx):
+    vc = await ctx.author.voice.channel.connect()
+    vc.play(nextcord.FFmpegPCMAudio(source = "pbnj.mp3"))
+    while vc.is_playing():
+        await asyncio.sleep(.25)
+    vc.stop()
+    await vc.disconnect()
+
+@client.command()
+async def sounds(ctx):
+    await ctx.send('Sounds: sus, augh, pbnj')
+
 # ------------------------------------------------------------------------
 #
 # ---- EVENTS ------------------------------------------------------------
