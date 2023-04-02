@@ -98,6 +98,73 @@ async def clippy(ctx):
     await ctx.send(clippyMsg[randrange(len(clippyMsg))])
 
 # ------------------------------------------------------------------------
+#                            SOUND EFFECTS
+# ------------------------------------------------------------------------
+
+@client.command()
+async def sounds(ctx, sound: str):
+    await ctx.send('Sounds:')
+    file_name = "sounds/"
+    flag = False
+    match sound:
+        case "":
+            soundsEmbed = nextcord.Embed(title = 'Sounds', color = embedBlue)
+            soundsEmbed.add_field(name = 'amogus', value = '')
+            soundsEmbed.add_field(name = 'augh', value = '')
+            soundsEmbed.add_field(name = 'pbnj', value = '')
+            soundsEmbed.add_field(name = 'ayoterry', value = '')
+            soundsEmbed.add_field(name = 'bababooey', value = '')
+            soundsEmbed.add_field(name = 'dog', value = '')
+            soundsEmbed.add_field(name = 'error', value = '')
+            soundsEmbed.add_field(name = 'metal', value = '')
+            soundsEmbed.add_field(name = 'marioo', value = '')
+            soundsEmbed.add_field(name = 'taco', value = '')
+            soundsEmbed.add_field(name = 'usb', value = '')
+            await ctx.send(embed=soundsEmbed)
+        case "amogus":
+            file_name += "amogus.m4a"
+            flag = True
+        case "augh":
+            file_name += "augh.mp3"
+            flag = True
+        case "pbnj":
+            file_name += "pbnj.mp3"
+            flag = True
+        case "ayoterry":
+            file_name += "ayoterry.mp4"
+            flag = True
+        case "bababooey":
+            file_name += "bababooey.3gp"
+            flag = True
+        case "dog":
+            file_name += "dog.3gp"
+            flag = True
+        case "error":
+            file_name += "error.3gp"
+            flag = True
+        case "metal":
+            file_name += "metal.3gp"
+            flag = True
+        case "marioo":
+            file_name += "marioo.3gp"
+            flag = True
+        case "taco":
+            file_name += "taco.3gp"
+            flag = True
+        case "usb":
+            file_name += "usb.3gp"
+            flag = True
+        case _:
+            await ctx.send(f"{str} is not recognized. Type $sounds to see the options.")
+    if flag:
+        vc = await ctx.author.voice.channel.connect()
+        vc.play(nextcord.FFmpegPCMAudio(source = file_name))
+        while vc.is_playing():
+            await asyncio.sleep(.25)
+        vc.stop()
+        await vc.disconnect()
+
+# ------------------------------------------------------------------------
 #                   RESET ACTIVITY STATUS OF MEMBERS
 # ------------------------------------------------------------------------
 
@@ -351,37 +418,6 @@ async def register(ctx, username: str):
                 vault[userID] = newPlayer
                 await ctx.send(f'You have been registered as {username}')
 
-@client.command()
-async def sus(ctx):
-    vc = await ctx.author.voice.channel.connect()
-    vc.play(nextcord.FFmpegPCMAudio(source = "amogus.m4a"))
-    while vc.is_playing():
-        await asyncio.sleep(.25)
-    vc.stop()
-    await vc.disconnect()
-
-@client.command()
-async def augh(ctx):
-    vc = await ctx.author.voice.channel.connect()
-    vc.play(nextcord.FFmpegPCMAudio(source = "augh.mp3"))
-    while vc.is_playing():
-        await asyncio.sleep(.25)
-    vc.stop()
-    await vc.disconnect()
-
-@client.command()
-async def pbnj(ctx):
-    vc = await ctx.author.voice.channel.connect()
-    vc.play(nextcord.FFmpegPCMAudio(source = "pbnj.mp3"))
-    while vc.is_playing():
-        await asyncio.sleep(.25)
-    vc.stop()
-    await vc.disconnect()
-
-@client.command()
-async def sounds(ctx):
-    await ctx.send('Sounds: sus, augh, pbnj')
-
 # ------------------------------------------------------------------------
 #
 # ---- EVENTS ------------------------------------------------------------
@@ -477,6 +513,11 @@ async def buy_error(ctx, error):
 async def register_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Usage: $register [username (no spaces or special characters)]')
+
+@sounds.error
+async def sounds_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Usage: $sounds [soundname]\n\tIf no soundname is given, it will list the sounds.')
 
 # ------------------------------------------------------------------------
 
