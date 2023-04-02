@@ -120,6 +120,7 @@ async def sounds(ctx, sound: str):
             soundsEmbed.add_field(name = 'marioo', value = '')
             soundsEmbed.add_field(name = 'taco', value = '')
             soundsEmbed.add_field(name = 'usb', value = '')
+            soundsEmbed.add_field(name = 'wenkwenk', value = '')
             await ctx.send(embed=soundsEmbed)
         case "amogus":
             file_name += "amogus.m4a"
@@ -154,6 +155,8 @@ async def sounds(ctx, sound: str):
         case "usb":
             file_name += "usb.3gp"
             flag = True
+        case "wenkwenk":
+            file_name += "wenkwenk.mp3"
         case _:
             await ctx.send(f"{str} is not recognized. Type $sounds to see the options.")
     if flag:
@@ -434,15 +437,15 @@ async def on_voice_state_update(member, before, after):
         await asyncio.sleep(.25)
         randval = randrange(0, 20)
         if member.id == 198935914741760000:
-            vc.play(nextcord.FFmpegPCMAudio(source = "jagger.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/jagger.mp3"))
         elif randval == 0:
-            vc.play(nextcord.FFmpegPCMAudio(source = "imwatchingyou.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/imwatchingyou.mp3"))
         elif randval <= 5:
-            vc.play(nextcord.FFmpegPCMAudio(source = "wenkwenk.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/wenkwenk.mp3"))
         elif randval <= 12:
-            vc.play(nextcord.FFmpegPCMAudio(source = "Welcome_Back.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/Welcome_Back.mp3"))
         else:
-            vc.play(nextcord.FFmpegPCMAudio(source = "welcomeback.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/welcomeback.mp3"))
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
@@ -454,15 +457,15 @@ async def on_voice_state_update(member, before, after):
         await asyncio.sleep(.25)
         randval = randrange(0, 20)
         if member.id == 198935914741760000:
-            vc.play(nextcord.FFmpegPCMAudio(source = "jagger.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/jagger.mp3"))
         elif randval == 0:
-            vc.play(nextcord.FFmpegPCMAudio(source = "imwatchingyou.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/imwatchingyou.mp3"))
         elif randval <= 5:
-            vc.play(nextcord.FFmpegPCMAudio(source = "wenkwenk.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/wenkwenk.mp3"))
         elif randval <= 12:
-            vc.play(nextcord.FFmpegPCMAudio(source = "Welcome_Back.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/Welcome_Back.mp3"))
         else:
-            vc.play(nextcord.FFmpegPCMAudio(source = "welcomeback.mp3"))
+            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/welcomeback.mp3"))
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
@@ -471,7 +474,7 @@ async def on_voice_state_update(member, before, after):
     elif before.channel and before.channel.id == 929075584020127834 and after.channel and not member.id == client.user.id:
         vc = await after.channel.connect()
         await asyncio.sleep(.25)
-        vc.play(nextcord.FFmpegPCMAudio(source = "hagay.mp3"))
+        vc.play(nextcord.FFmpegPCMAudio(source = "sounds/hagay.mp3"))
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
