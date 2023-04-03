@@ -105,60 +105,37 @@ async def clippy(ctx):
 async def sounds(ctx, sound: str):
     await ctx.send('Sounds:')
     file_name = "sounds/"
-    flag = False
+    flag = True
     match sound:
-        case "":
-            soundsEmbed = nextcord.Embed(title = 'Sounds', color = embedBlue)
-            soundsEmbed.add_field(name = 'amogus', value = '')
-            soundsEmbed.add_field(name = 'augh', value = '')
-            soundsEmbed.add_field(name = 'pbnj', value = '')
-            soundsEmbed.add_field(name = 'ayoterry', value = '')
-            soundsEmbed.add_field(name = 'bababooey', value = '')
-            soundsEmbed.add_field(name = 'dog', value = '')
-            soundsEmbed.add_field(name = 'error', value = '')
-            soundsEmbed.add_field(name = 'metal', value = '')
-            soundsEmbed.add_field(name = 'marioo', value = '')
-            soundsEmbed.add_field(name = 'taco', value = '')
-            soundsEmbed.add_field(name = 'usb', value = '')
-            soundsEmbed.add_field(name = 'wenkwenk', value = '')
-            await ctx.send(embed=soundsEmbed)
         case "amogus":
             file_name += "amogus.m4a"
-            flag = True
         case "augh":
             file_name += "augh.mp3"
-            flag = True
         case "pbnj":
             file_name += "pbnj.mp3"
-            flag = True
         case "ayoterry":
-            file_name += "ayoterry.mp4"
-            flag = True
+            file_name += "ayoterry.mp3"
         case "bababooey":
             file_name += "bababooey.3gp"
-            flag = True
         case "dog":
             file_name += "dog.3gp"
-            flag = True
         case "error":
             file_name += "error.3gp"
-            flag = True
         case "metal":
             file_name += "metal.3gp"
-            flag = True
         case "marioo":
             file_name += "marioo.3gp"
-            flag = True
         case "taco":
             file_name += "taco.3gp"
-            flag = True
         case "usb":
             file_name += "usb.3gp"
-            flag = True
         case "wenkwenk":
             file_name += "wenkwenk.mp3"
+        case "aight":
+            file_name += "aight.mp3"
         case _:
-            await ctx.send(f"{str} is not recognized. Type $sounds to see the options.")
+            await ctx.send(f"{sound} is not recognized. Type $sounds to see the options.")
+            flag = False
     if flag:
         vc = await ctx.author.voice.channel.connect()
         vc.play(nextcord.FFmpegPCMAudio(source = file_name))
@@ -520,7 +497,21 @@ async def register_error(ctx, error):
 @sounds.error
 async def sounds_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send('Usage: $sounds [soundname]\n\tIf no soundname is given, it will list the sounds.')
+        soundsEmbed = nextcord.Embed(title = 'Sounds', color = embedBlue)
+        soundsEmbed.add_field(name = 'amogus', value = '')
+        soundsEmbed.add_field(name = 'augh', value = '')
+        soundsEmbed.add_field(name = 'pbnj', value = '')
+        soundsEmbed.add_field(name = 'ayoterry', value = '')
+        soundsEmbed.add_field(name = 'bababooey', value = '')
+        soundsEmbed.add_field(name = 'dog', value = '')
+        soundsEmbed.add_field(name = 'error', value = '')
+        soundsEmbed.add_field(name = 'metal', value = '')
+        soundsEmbed.add_field(name = 'marioo', value = '')
+        soundsEmbed.add_field(name = 'taco', value = '')
+        soundsEmbed.add_field(name = 'usb', value = '')
+        soundsEmbed.add_field(name = 'wenkwenk', value = '')
+        soundsEmbed.add_field(name = 'aight')
+        await ctx.send(embed=soundsEmbed)
 
 # ------------------------------------------------------------------------
 
