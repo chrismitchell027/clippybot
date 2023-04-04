@@ -510,7 +510,7 @@ async def sounds_error(ctx, error):
         soundsEmbed.add_field(name = 'taco', value = '')
         soundsEmbed.add_field(name = 'usb', value = '')
         soundsEmbed.add_field(name = 'wenkwenk', value = '')
-        soundsEmbed.add_field(name = 'aight')
+        soundsEmbed.add_field(name = 'aight', value = '')
         await ctx.send(embed=soundsEmbed)
 
 # ------------------------------------------------------------------------
