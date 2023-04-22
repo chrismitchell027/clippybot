@@ -408,7 +408,7 @@ async def on_ready():
 
 @client.event
 async def on_voice_state_update(member, before, after):
-    if not before.channel and after.channel and after.channel != 402257227555143701 and not member.id == client.user.id and not member.id == 159800228088774656:
+    if not before.channel and after.channel and after.channel.id != 402257227555143701 and not member.id == client.user.id and not member.id == 159800228088774656:
         vc = await after.channel.connect()
         #textchannel = client.get_channel(884995892359331850) #bot spam
         await asyncio.sleep(.25)
