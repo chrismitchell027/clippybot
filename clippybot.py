@@ -463,6 +463,25 @@ async def on_voice_state_update(member, before, after):
 
 
 
+@client.event
+async def on_message(msg):
+    author = msg.author
+    
+    if author == client.user:
+        return
+    
+    dm = msg.channel.type == nextcord.ChannelType.private
+    
+    if not dm:
+        return
+    
+    guild = client.get_guild(402256672028098580)
+    member = guild.get_member(author.id)
+    
+    if member and member.top_role.id == 501542465623556116:
+        await msg.channel.send("you are beaky")
+    else:
+        await msg.channel.send("you are not sneaky")
 
 # ------------------------------------------------------------------------
 #
