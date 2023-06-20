@@ -489,11 +489,13 @@ async def on_message(msg):
     author = msg.author
     
     if author == client.user:
+        await client.process_commands(msg)
         return
     
     dm = msg.channel.type == nextcord.ChannelType.private
     
     if not dm:
+        await client.process_commands(msg)
         return
     
     guild = client.get_guild(402256672028098580)#the boys
@@ -502,7 +504,7 @@ async def on_message(msg):
     if member:
         for r in member.roles:
             if r.id == 501542465623556116:#beaky id
-                if msg.content == "" and msg.attachments:
+                if msg.content == "" and msg.attachments and msg.attachments[0].size < 10000000:
                     file_name = msg.attachments[0].filename
                     
                     txt = open("added_sounds.txt", "a")#add filename to file
@@ -514,7 +516,10 @@ async def on_message(msg):
                     
                     await msg.attachments[0].save(os.getcwd() + "/sounds/saved_sounds/" + msg.attachments[0].filename)
                     msg.reply(file_name + " successfully added!")
+                await client.process_commands(msg)
                 return
+            
+    await client.process_commands(msg)
 
 # ------------------------------------------------------------------------
 #
