@@ -419,6 +419,8 @@ async def on_ready():
     try:
         txt = open("added_sounds.txt", "r")#read filenames
     
+        global saved_sounds
+        saved_sounds = []
         for sound in txt:
             extension = sound[sound.index('.'):]
             saved_sounds.append([sound[:sound.index('.')], extension])#add filename to list
