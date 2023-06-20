@@ -489,7 +489,6 @@ async def on_message(msg):
     author = msg.author
     
     if author == client.user:
-        await client.process_commands(msg)
         return
     
     dm = msg.channel.type == nextcord.ChannelType.private
