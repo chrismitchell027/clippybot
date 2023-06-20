@@ -6,6 +6,7 @@ import shelve
 from random import randrange
 import asyncio
 from PlayerClass import Player
+import os
 
 # TO-DO
 #   shop command to list miners available
@@ -73,6 +74,8 @@ minerIDs = {0:'Sneaky Slave',
             9:'Bebastian Plantation',
             10:'Joe Miner'}
 
+saved_sounds = []
+
 intents = nextcord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -134,8 +137,15 @@ async def sounds(ctx, sound: str):
         case "aight":
             file_name += "aight.mp3"
         case _:
-            await ctx.send(f"{sound} is not recognized. Type $sounds to see the options.")
-            flag = False
+            found_file = False
+            for sounds in saved_sounds:
+                if sound == sounds[0]:
+                    file_name += "saved_sounds/" + sounds[0] + sounds[1]
+                    found_file = True
+                    break
+            if not found_file:
+                await ctx.send(f"{sound} is not recognized. Type $sounds to see the options.")
+                flag = False
     if flag:
         vc = await ctx.author.voice.channel.connect()
         vc.play(nextcord.FFmpegPCMAudio(source = file_name))
@@ -405,6 +415,17 @@ async def register(ctx, username: str):
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
+    
+    try:
+        txt = open("added_sounds.txt", "r")#read filenames
+    
+        for sound in txt:
+            extension = sound[sound.index('.'):]
+            saved_sounds.append([sound[:sound.index('.')], extension])#add filename to list
+        
+        txt.close()
+    except FileNotFoundError:
+        pass
 
 @client.event
 async def on_voice_state_update(member, before, after):
@@ -475,13 +496,25 @@ async def on_message(msg):
     if not dm:
         return
     
-    guild = client.get_guild(402256672028098580)
+    guild = client.get_guild(402256672028098580)#the boys
     member = guild.get_member(author.id)
     
-    if member and member.top_role.id == 501542465623556116:
-        await msg.channel.send("you are beaky")
-    else:
-        await msg.channel.send("you are not sneaky")
+    if member:
+        for r in member.roles:
+            if r.id == 501542465623556116:#beaky id
+                if msg.content == "" and msg.attachments:
+                    file_name = msg.attachments[0].filename
+                    
+                    txt = open("added_sounds.txt", "a")#add filename to file
+                    txt.write(file_name + '\n')
+                    txt.close()
+                    
+                    extension = file_name[file_name.index('.'):]
+                    saved_sounds.append([file_name[:file_name.index('.')], extension])#add filename to list
+                    
+                    await msg.attachments[0].save(os.getcwd() + "/sounds/saved_sounds/" + msg.attachments[0].filename)
+                    msg.reply(file_name + " successfully added!")
+                return
 
 # ------------------------------------------------------------------------
 #
@@ -534,6 +567,8 @@ async def sounds_error(ctx, error):
         soundsEmbed.add_field(name = 'usb', value = '')
         soundsEmbed.add_field(name = 'wenkwenk', value = '')
         soundsEmbed.add_field(name = 'aight', value = '')
+        for s in saved_sounds:
+            soundsEmbed.add_field(name = s[0], value = '')
         await ctx.send(embed=soundsEmbed)
 
 # ------------------------------------------------------------------------
