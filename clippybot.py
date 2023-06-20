@@ -516,10 +516,7 @@ async def on_message(msg):
                     
                     await msg.attachments[0].save(os.getcwd() + "/sounds/saved_sounds/" + msg.attachments[0].filename)
                     await msg.reply(file_name + " successfully added!")
-                await client.process_commands(msg)
                 return
-            
-    await client.process_commands(msg)
 
 # ------------------------------------------------------------------------
 #
