@@ -140,7 +140,7 @@ async def sounds(ctx, sound: str):
             found_file = False
             for sounds in saved_sounds:
                 if sound == sounds[0]:
-                    file_name += "saved_sounds/" + sounds[0] + sounds[1]
+                    file_name += "saved_sounds/" + sounds[0] + sounds[1].rstrip('\n')
                     found_file = True
                     break
             if not found_file:
