@@ -106,7 +106,6 @@ async def clippy(ctx):
 
 @client.command()
 async def sounds(ctx, sound: str):
-    await ctx.send('Sounds:')
     file_name = "sounds/"
     flag = True
     match sound:
@@ -124,8 +123,6 @@ async def sounds(ctx, sound: str):
             file_name += "dog.3gp"
         case "error":
             file_name += "error.3gp"
-        case "metal":
-            file_name += "metal.3gp"
         case "marioo":
             file_name += "marioo.3gp"
         case "taco":
@@ -564,7 +561,6 @@ async def sounds_error(ctx, error):
         soundsEmbed.add_field(name = 'bababooey', value = '')
         soundsEmbed.add_field(name = 'dog', value = '')
         soundsEmbed.add_field(name = 'error', value = '')
-        soundsEmbed.add_field(name = 'metal', value = '')
         soundsEmbed.add_field(name = 'marioo', value = '')
         soundsEmbed.add_field(name = 'taco', value = '')
         soundsEmbed.add_field(name = 'usb', value = '')
