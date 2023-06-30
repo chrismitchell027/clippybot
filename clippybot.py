@@ -503,8 +503,12 @@ async def on_message(msg):
         for r in member.roles:
             if r.id == 501542465623556116:#beaky id
                 if msg.content == "" and msg.attachments and msg.attachments[0].size < 10000000:
-                    file_name = msg.attachments[0].filename
-                    
+                    file_name = msg.attachments[0].filename.lower()
+                    for sound in saved_sounds:
+                        if sounds[0] + sounds[1].rstrip() == file_name:
+                            await msg.reply(file_name + " is already taken. Change the name and try again.")
+                            return
+ 
                     txt = open("added_sounds.txt", "a")#add filename to file
                     txt.write(file_name + '\n')
                     txt.close()
