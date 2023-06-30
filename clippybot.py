@@ -553,7 +553,11 @@ async def register_error(ctx, error):
 @sounds.error
 async def sounds_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        soundsEmbed = nextcord.Embed(title = 'Sounds', color = embedBlue)
+        sounds_page_number = 1 #current number of the embed being created
+        sounds_added_count = 0 #how many sounds are on a given embed
+        soundsEmbed = nextcord.Embed(title = f'Sounds Page {sounds_page_number}', color = embedBlue) #sets up first embed
+
+        #adds original sounds and updates sounds_added_count
         soundsEmbed.add_field(name = 'amogus', value = '')
         soundsEmbed.add_field(name = 'augh', value = '')
         soundsEmbed.add_field(name = 'pbnj', value = '')
@@ -566,9 +570,22 @@ async def sounds_error(ctx, error):
         soundsEmbed.add_field(name = 'usb', value = '')
         soundsEmbed.add_field(name = 'wenkwenk', value = '')
         soundsEmbed.add_field(name = 'aight', value = '')
+        sounds_added_count += 12
+
+        #iterates through all sounds in the saved sounds file
         for s in saved_sounds:
-            soundsEmbed.add_field(name = s[0], value = '')
-        await ctx.send(embed=soundsEmbed)
+            soundsEmbed.add_field(name = s[0], value = '') #adds sound to embed
+            sounds_added_count += 1 #update sound count
+            if sounds_added_count == 25: #once 25 sounds are added, print the embed and setup the next embed
+                await ctx.send(embed=soundsEmbed)
+                sounds_page_number += 1
+                soundsEmbed = nextcord.Embed(title = f'Sounds Page {sounds_page_number}', color = embedBlue)
+                sounds_added_count = 0
+
+        # at this point there are no more sounds in the saved_sounds file to add
+        # if the current embed has any sounds on it, print (used to prevent an empty embed from being printed because of a sound count that is a multiple of 25)
+        if sounds_added_count > 0:
+            await ctx.send(embed=soundsEmbed)
 
 # ------------------------------------------------------------------------
 
