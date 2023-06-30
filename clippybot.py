@@ -505,7 +505,7 @@ async def on_message(msg):
                 if msg.content == "" and msg.attachments and msg.attachments[0].size < 10000000:
                     file_name = msg.attachments[0].filename.lower()
                     for sound in saved_sounds:
-                        if sounds[0] + sounds[1].rstrip() == file_name:
+                        if sounds[0] + sounds[1].rstrip('\n') == file_name:
                             await msg.reply(file_name + " is already taken. Change the name and try again.")
                             return
  
