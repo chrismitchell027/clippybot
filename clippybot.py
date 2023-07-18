@@ -7,6 +7,7 @@ from random import randrange
 import asyncio
 from PlayerClass import Player
 import os
+import subprocess
 
 # TO-DO
 #   shop command to list miners available
@@ -99,6 +100,19 @@ async def beb(ctx):
 @client.command()
 async def clippy(ctx):
     await ctx.send(clippyMsg[randrange(len(clippyMsg))])
+
+@client.command()
+async def play(ctx, url):
+    subprocess.run([os.getcwd() + "/yt-dlp", "-x", "--audio-format", "mp3", url, "-o", "yt.mp3"])
+    mp3_exists = os.path.exists("yt.mp3")
+    if mp3_exists:
+        vc = await ctx.author.voice.channel.connect()
+        vc.play(nextcord.FFmpegPCMAudio(source = "yt.mp3"))
+        while vc.is_playing():
+            await asyncio.sleep(.25)
+        vc.stop()
+        await vc.disconnect()
+        os.remove("yt.mp3")
 
 # ------------------------------------------------------------------------
 #                            SOUND EFFECTS
