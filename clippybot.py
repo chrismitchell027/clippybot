@@ -18,7 +18,7 @@ import subprocess
 
 
 # INVENTORY VAULT INFORMATION:
-#   dictionary with key = vaultid and values of lists: 
+#   dictionary with key = vaultid and values of lists:
 #   itemvault = {
 #               'vaultid1' : [quantity, quantity, ... ]}
 #   list index represents which item it is (numbers match up with the shop number - 1)
@@ -28,7 +28,7 @@ import subprocess
 MINE_COOLDOWN = 180 # (seconds)
 MINE_MIN = 150
 MINE_MAX = 210
-cooldowns = dict() 
+cooldowns = dict()
 
 # other variables
 embedBlue = 0x00daff
@@ -102,7 +102,7 @@ async def clippy(ctx):
     await ctx.send(clippyMsg[randrange(len(clippyMsg))])
 
 @client.command()
-async def play(ctx, url):
+async def play(ctx, url: str):
     subprocess.run([os.getcwd() + "/yt-dlp", "-x", "--audio-format", "mp3", url, "-o", "yt.mp3"])
     mp3_exists = os.path.exists("yt.mp3")
     if mp3_exists:
@@ -113,6 +113,8 @@ async def play(ctx, url):
         vc.stop()
         await vc.disconnect()
         os.remove("yt.mp3")
+
+
 
 # ------------------------------------------------------------------------
 #                            SOUND EFFECTS
@@ -201,7 +203,7 @@ async def richest(ctx):
             await ctx.send(embed = richestEmbed)
         else:
             await ctx.send("You're all broke! Ya mommas broke, ya daddys broke, ya brother broke, ya sister, ya cousins broke, ya auntie broke, seb is broke.")
-        
+
 
 @client.command()
 async def vault(ctx):
@@ -212,7 +214,7 @@ async def vault(ctx):
             tempPlayer = vault[x]
             vaultEmbed.add_field(name=str(numPlayersInVault + 1), value=f'{tempPlayer.get_username()} has {tempPlayer.get_balance():,}')
             numPlayersInVault += 1
-            
+
         if numPlayersInVault > 0:
             await ctx.send(embed = vaultEmbed)
         if numPlayersInVault == 0:
@@ -254,14 +256,14 @@ async def send(ctx, user: nextcord.User, amt: float):
 
                 if recipientID in vault:
                     recipientPlayer = vault[recipientID]
-                    
+
                     #finished checking if people were registered here:
                     if sendPlayer.get_balance() >= amt:
                         sendPlayer.add_balance(-amt)
                         recipientPlayer.add_balance(amt)
                         vault[userID] = sendPlayer
                         vault[recipientID] = recipientPlayer
-                        await ctx.send(f'{ctx.author.mention} has sent {user.mention} {amt:,.1f} bebbies')            
+                        await ctx.send(f'{ctx.author.mention} has sent {user.mention} {amt:,.1f} bebbies')
                     else:
                         await ctx.send(f'You do not have enough bebbies to send.')
 
@@ -288,7 +290,7 @@ async def mine(ctx):
         cooldowns[userID] = time.time()
         amount = randrange(MINE_MIN, MINE_MAX)
         mine = True
-    
+
     with shelve.open('PlayerVault') as vault:
         if userID in vault and mine:
             tempPlayer = vault[userID]
@@ -301,7 +303,7 @@ async def mine(ctx):
             await ctx.send(registerMsg)
             cooldowns.pop(userID)
 
-@client.command() 
+@client.command()
 async def buy(ctx, publicItemID):
     userID = str(ctx.author.id)
     user = ctx.author
@@ -323,7 +325,7 @@ async def buy(ctx, publicItemID):
                 print('made it to not buy')
         elif userID not in vault:
             await ctx.send(registerMsg)
-          
+
 @client.command()
 async def inventory(ctx):
     userID = str(ctx.author.id)
@@ -378,7 +380,7 @@ async def server(ctx):
         invEmbed.add_field(name = 'Players', value = f'{playerCount}')
         for i in range(len(serverInv)):
             invEmbed.add_field(name = str(miners[i][0]), value = f'[{serverInv[i]}] Owned')
-        
+
         await ctx.send(embed = invEmbed)
 
 @client.command()
@@ -426,16 +428,16 @@ async def register(ctx, username: str):
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
-    
+
     try:
         txt = open("added_sounds.txt", "r")#read filenames
-    
+
         global saved_sounds
         saved_sounds = []
         for sound in txt:
             extension = sound[sound.index('.'):]
             saved_sounds.append([sound[:sound.index('.')], extension])#add filename to list
-        
+
         txt.close()
     except FileNotFoundError:
         pass
@@ -464,7 +466,7 @@ async def on_voice_state_update(member, before, after):
         vc.stop()
         await vc.disconnect()
 
-    elif before.channel and before.channel.id == 402257227555143701 and after.channel and not member.id == client.user.id and not member.id == 159800228088774656:
+    elif before.channel and before.channel.id == 402257227555143701 and after.channel and after.channel.id != 402257227555143701 and not member.id == client.user.id and not member.id == 159800228088774656:
         vc = await after.channel.connect()
         #textchannel = client.get_channel(884995892359331850) #bot spam
         await asyncio.sleep(.25)
@@ -500,19 +502,19 @@ async def on_voice_state_update(member, before, after):
 @client.event
 async def on_message(msg):
     author = msg.author
-    
+
     if author == client.user:
         return
-    
+
     dm = msg.channel.type == nextcord.ChannelType.private
-    
+
     if not dm:
         await client.process_commands(msg)
         return
-    
+
     guild = client.get_guild(402256672028098580)#the boys
     member = guild.get_member(author.id)
-    
+
     if member:
         for r in member.roles:
             if r.id == 501542465623556116:#beaky id
@@ -522,14 +524,14 @@ async def on_message(msg):
                         if sound[0] + sound[1].rstrip('\n') == file_name:
                             await msg.reply(file_name + " is already taken. Change the name and try again.")
                             return
- 
+
                     txt = open("added_sounds.txt", "a")#add filename to file
                     txt.write(file_name + '\n')
                     txt.close()
-                    
+
                     extension = file_name[file_name.index('.'):]
                     saved_sounds.append([file_name[:file_name.index('.')], extension])#add filename to list
-                    
+
                     await msg.attachments[0].save(os.getcwd() + "/sounds/saved_sounds/" + msg.attachments[0].filename)
                     await msg.reply(file_name + " successfully added!")
                 return
