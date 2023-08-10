@@ -536,6 +536,20 @@ async def on_message(msg):
                     await msg.reply(file_name + " successfully added!")
                 return
 
+@client.event
+async def on_reaction_add(reaction, user):
+    # Check if the reaction is added in the 'welcome' channel
+    if reaction.message.channel.id == 1093605192462770316: # welcome channel id
+        # Check if the reaction is the one you're interested in (e.g., thumbs up)
+        if str(reaction.emoji) == '🏃': 
+
+            role = client.get_guild(reaction.message.guild.id).get_role(1095869724472123483) # rushing in role
+            
+            # Give the role to the user
+            if role:
+                await user.add_roles(role)
+                await reaction.message.author.send(f'You have been given the role "{role.name}".')
+
 # ------------------------------------------------------------------------
 #
 # ---- BEBBIES INCOME ----------------------------------------------------
