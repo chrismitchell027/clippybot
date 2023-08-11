@@ -517,11 +517,12 @@ async def on_message(msg):
         return
 
     guild = client.get_guild(402256672028098580)#the boys
+    #guild = client.get_guild(968624369683275856) # clippy test server
     member = guild.get_member(author.id)
 
     if member:
         for r in member.roles:
-            if r.id == 501542465623556116:#beaky id
+            if r.id == 501542465623556116:#beaky id     #1139361424217485382: reaction role id for test server
                 if msg.content == "" and msg.attachments and msg.attachments[0].size < 10000000:
                     file_name = msg.attachments[0].filename.lower()
                     for sound in saved_sounds:
