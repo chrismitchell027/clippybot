@@ -34,6 +34,10 @@ cooldowns = dict()
 embedBlue = 0x00daff
 registerMsg = 'You must register using $register [username] to use bebbie features!'
 
+# variables for reaction roles
+welcome_channel_id = 1093605192462770316
+rushing_in_role_id = 1095869724472123483
+
 # miners stores information about each miner in a list
 #   miners[itemid][0] = name
 #   miners[itemid][1] = cost
@@ -539,16 +543,29 @@ async def on_message(msg):
 @client.event
 async def on_reaction_add(reaction, user):
     # Check if the reaction is added in the 'welcome' channel
-    if reaction.message.channel.id == 1093605192462770316: # welcome channel id
+    if reaction.message.channel.id == welcome_channel_id:
         # Check if the reaction is the one you're interested in (e.g., thumbs up)
+        print('1')
         if str(reaction.emoji) == '🏃': 
-
-            role = client.get_guild(reaction.message.guild.id).get_role(1095869724472123483) # rushing in role
+            print('2')
+            role = client.get_guild(reaction.message.guild.id).get_role(rushing_in_role_id)
             
             # Give the role to the user
             if role:
+                print('3')
                 await user.add_roles(role)
                 await reaction.message.author.send(f'You have been given the role "{role.name}".')
+
+@client.event
+async def on_reaction_remove(reaction, user):
+    if reaction.message.channel.id == welcome_channel_id:
+        if str(reaction.emoji) == '🏃':
+            role = client.get_guild(reaction.message.guild.id).get_role(rushing_in_role_id)
+
+            if role:
+                await user.remove_roles(role)
+                channel = client.get_channel(welcome_channel_id)
+                await reaction.message.author.send(f'You have been removed from the role "{role.name}".')
 
 # ------------------------------------------------------------------------
 #
