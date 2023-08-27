@@ -537,7 +537,7 @@ async def on_message(msg):
                     extension = file_name[file_name.index('.'):]
                     saved_sounds.append([file_name[:file_name.index('.')], extension])#add filename to list
 
-                    await msg.attachments[0].save(os.getcwd() + "/sounds/saved_sounds/" + msg.attachments[0].filename)
+                    await msg.attachments[0].save(os.getcwd() + "/sounds/saved_sounds/" + msg.attachments[0].filename.lower())
                     await msg.reply(file_name + " successfully added!")
                 return
 
