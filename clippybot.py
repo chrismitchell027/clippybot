@@ -425,6 +425,26 @@ async def register(ctx, username: str):
                 newPlayer = Player(userID, username)
                 vault[userID] = newPlayer
                 await ctx.send(f'You have been registered as {username}')
+                
+@client.command()
+async def delete(ctx, sound: str):
+    if ctx.channel.id == 1146979115728113785 and sound != None:#clippy-admin
+        txt = open("added_sounds.json", "r")
+        sound_dict = json.load(txt)
+        txt.close()
+
+        if sound in sound_dict:
+            del sound_dict[sound]
+            for i in range(len(saved_sounds)):
+                if saved_sounds[i][0] == sound:
+                    del saved_sounds[i]
+                    break
+
+            txt = open("added_sounds.json", "w")
+            json.dump(sound_dict, txt, indent = 4)
+            txt.close()
+        else:
+            ctx.reply(f'Sound {sound} not found')
 
 # ------------------------------------------------------------------------
 #
