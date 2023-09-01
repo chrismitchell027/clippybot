@@ -8,6 +8,7 @@ import asyncio
 from PlayerClass import Player
 import os
 import subprocess
+import json
 
 # TO-DO
 #   shop command to list miners available
@@ -157,7 +158,7 @@ async def sounds(ctx, sound: str):
             found_file = False
             for sounds in saved_sounds:
                 if sound == sounds[0]:
-                    file_name += "saved_sounds/" + sounds[0] + sounds[1].rstrip('\n')
+                    file_name += "saved_sounds/" + sounds[0] + sounds[1]
                     found_file = True
                     break
             if not found_file:
@@ -434,13 +435,16 @@ async def on_ready():
     print(f'We have logged in as {client.user}')
 
     try:
-        txt = open("added_sounds.txt", "r")#read filenames
+        txt = open("added_sounds.json", "r")#read filenames
 
         global saved_sounds
         saved_sounds = []
-        for sound in txt:
-            extension = sound[sound.index('.'):]
-            saved_sounds.append([sound[:sound.index('.')], extension])#add filename to list
+        
+        sound_dict = json.load(txt)
+        
+        for sound in sound_dict:
+            extension = '.' + sound_dict[sound]["type"]
+            saved_sounds.append([sound, extension])#add filename to list
 
         txt.close()
     except FileNotFoundError:
@@ -455,8 +459,6 @@ async def on_voice_state_update(member, before, after):
         randval = randrange(0, 20)
         if member.id == 198935914741760000:
             vc.play(nextcord.FFmpegPCMAudio(source = "sounds/jagger.mp3"))
-        elif member.id == 283008781896515604:
-            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/VACC.mp3"))
         elif randval == 0:
             vc.play(nextcord.FFmpegPCMAudio(source = "sounds/imwatchingyou.mp3"))
         elif randval <= 5:
@@ -477,8 +479,6 @@ async def on_voice_state_update(member, before, after):
         randval = randrange(0, 20)
         if member.id == 198935914741760000:
             vc.play(nextcord.FFmpegPCMAudio(source = "sounds/jagger.mp3"))
-        elif member.id == 283008781896515604:
-            vc.play(nextcord.FFmpegPCMAudio(source = "sounds/VACC.mp3"))
         elif randval == 0:
             vc.play(nextcord.FFmpegPCMAudio(source = "sounds/imwatchingyou.mp3"))
         elif randval <= 5:
@@ -526,14 +526,23 @@ async def on_message(msg):
                 if msg.content == "" and msg.attachments and msg.attachments[0].size < 10000000:
                     file_name = msg.attachments[0].filename.lower()
                     for sound in saved_sounds:
-                        if sound[0] + sound[1].rstrip('\n') == file_name:
+                        if sound[0] + sound[1] == file_name:
                             await msg.reply(file_name + " is already taken. Change the name and try again.")
                             return
 
-                    txt = open("added_sounds.txt", "a")#add filename to file
-                    txt.write(file_name + '\n')
+                    txt = open("added_sounds.json", "r")#add filename to file
+                    sound_dict = json.load(txt)
                     txt.close()
-
+                    
+                    filetype = file_name[file_name.index('.')+1:]
+                    sound_name = file_name[:file_name.index('.')]
+                    
+                    sound_dict[sound_name] = {"type":filetype, "author":author.id}
+                    
+                    txt = open("added_sounds.json", "w")
+                    json.dump(sound_dict, txt, indent = 4)
+                    txt.close()
+                    
                     extension = file_name[file_name.index('.'):]
                     saved_sounds.append([file_name[:file_name.index('.')], extension])#add filename to list
 
