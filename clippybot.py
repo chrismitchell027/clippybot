@@ -462,8 +462,11 @@ async def name(ctx, userID, username: str):
         with shelve.open('PlayerVault') as vault:
             if userID in vault:
                 tempPlayer = vault[userID]
+                message = f'User {tempPlayer.get_username()} has been renamed to {username}'
                 tempPlayer.set_username(username)
                 vault[userID] = tempPlayer
+                
+                await ctx.send(message)
             else:
                 message = f'User {userID} not found'
                 await ctx.send(message)
