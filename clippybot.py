@@ -447,8 +447,9 @@ async def delete(ctx, sound: str):
             txt.close()
 
             os.remove(os.getcwd() + "/sounds/saved_sounds/" + sound + extension)
+            await ctx.reply(f'Sound {sound} deleted')
         else:
-            ctx.reply(f'Sound {sound} not found')
+            await ctx.reply(f'Sound {sound} not found')
 
 # ------------------------------------------------------------------------
 #
