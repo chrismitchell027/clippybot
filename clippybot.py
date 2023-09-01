@@ -434,15 +434,19 @@ async def delete(ctx, sound: str):
         txt.close()
 
         if sound in sound_dict:
+            extension = ""
             del sound_dict[sound]
             for i in range(len(saved_sounds)):
                 if saved_sounds[i][0] == sound:
+                    extension = saved_sounds[i][1]
                     del saved_sounds[i]
                     break
 
             txt = open("added_sounds.json", "w")
             json.dump(sound_dict, txt, indent = 4)
             txt.close()
+
+            os.remove(os.getcwd() + "/sounds/saved_sounds/" + sound + extension)
         else:
             ctx.reply(f'Sound {sound} not found')
 
