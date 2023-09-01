@@ -457,7 +457,7 @@ async def delete(ctx, sound: str):
             await ctx.reply(f'Sound {sound} not found')
 
 @client.command()
-async def name(ctx, userID, username: str):
+async def rename(ctx, userID, username: str):
     if ctx.channel.id == 1146979115728113785:
         with shelve.open('PlayerVault') as vault:
             if userID in vault:
@@ -655,10 +655,10 @@ async def register_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Usage: $register [username]\nusername must not contain spaces or special characters')
 
-@name.error
-async def name_error(ctx, error):
+@rename.error
+async def rename_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send('Usage: $name [userID] [username]\nuserID - discord member ID\nusername must not contain spaces or special characters')
+        await ctx.send('Usage: $rename [userID] [username]\nuserID - discord member ID\nusername must not contain spaces or special characters')
 
 @sounds.error
 async def sounds_error(ctx, error):
