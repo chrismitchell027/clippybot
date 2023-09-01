@@ -11,7 +11,6 @@ import subprocess
 import json
 
 # TO-DO
-#   shop command to list miners available
 #   either make miners "computers" or just make them seb slaves
 #   store how many miners a player has, calculate cost for them when they run the shop command
 #   cost of miner => price = basecost * 1.12^(num_owned)
@@ -425,7 +424,13 @@ async def register(ctx, username: str):
                 newPlayer = Player(userID, username)
                 vault[userID] = newPlayer
                 await ctx.send(f'You have been registered as {username}')
-                
+
+
+# ------------------------------------------------------------------------
+#
+# ---- ADMIN COMMANDS ----------------------------------------------------
+
+
 @client.command()
 async def delete(ctx, sound: str):
     if ctx.channel.id == 1146979115728113785 and sound != None:#clippy-admin
@@ -450,6 +455,18 @@ async def delete(ctx, sound: str):
             await ctx.reply(f'Sound {sound} deleted')
         else:
             await ctx.reply(f'Sound {sound} not found')
+
+@client.command()
+async def name(ctx, userID, username: str):
+    if ctx.channel.id == 1146979115728113785:
+        with shelve.open('PlayerVault') as vault:
+            if userID in vault:
+                tempPlayer = vault[userID]
+                tempPlayer.set_username(username)
+                vault[userID] = tempPlayer
+            else:
+                message = f'User {userID} not found'
+                await ctx.send(message)
 
 # ------------------------------------------------------------------------
 #
@@ -590,17 +607,16 @@ async def on_reaction_add(reaction, user):
                 print('3')
                 await user.add_roles(role)
                 await reaction.message.author.send(f'You have been given the role "{role.name}".')
-
 @client.event
 async def on_reaction_remove(reaction, user):
     if reaction.message.channel.id == welcome_channel_id:
         if str(reaction.emoji) == '🏃':
             role = client.get_guild(reaction.message.guild.id).get_role(rushing_in_role_id)
-
             if role:
                 await user.remove_roles(role)
                 channel = client.get_channel(welcome_channel_id)
-                await reaction.message.author.send(f'You have been removed from the role "{role.name}".')
+
+
 
 # ------------------------------------------------------------------------
 #
@@ -634,7 +650,12 @@ async def buy_error(ctx, error):
 @register.error
 async def register_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send('Usage: $register [username (no spaces or special characters)]')
+        await ctx.send('Usage: $register [username]\nusername must not contain spaces or special characters')
+
+@name.error
+async def name_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Usage: $name [userID] [username]\nuserID - discord member ID\nusername must not contain spaces or special characters')
 
 @sounds.error
 async def sounds_error(ctx, error):
