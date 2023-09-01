@@ -678,7 +678,7 @@ async def sounds_error(ctx, error):
         soundsEmbed.add_field(name = 'wenkwenk', value = '')
         soundsEmbed.add_field(name = 'aight', value = '')
         sounds_added_count += 12
-
+        
         #iterates through all sounds in the saved sounds file
         for s in saved_sounds:
             soundsEmbed.add_field(name = s[0], value = '') #adds sound to embed
