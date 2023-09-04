@@ -41,6 +41,8 @@ rushing_in_role_id = 1095869724472123483
 last_channel = None
 old_vc = None
 
+stop_sound = False
+
 # miners stores information about each miner in a list
 #   miners[itemid][0] = name
 #   miners[itemid][1] = cost
@@ -110,8 +112,10 @@ async def clippy(ctx):
 
 @client.command()
 async def play(ctx, url: str):
-    global stop_yt
-    stop_yt = False
+    global stop_sound
+    global last_channel
+    global old_vc
+    stop_sound = False
     subprocess.run([os.getcwd() + "/yt-dlp", "-x", "--audio-format", "mp3", url, "-o", "yt.mp3"])
     mp3_exists = os.path.exists("yt.mp3")
     if mp3_exists:
@@ -128,7 +132,7 @@ async def play(ctx, url: str):
         else:
             vc = old_vc
         vc.play(nextcord.FFmpegPCMAudio(source = "yt.mp3"))
-        while vc.is_playing() and not stop_yt:
+        while vc.is_playing() and not stop_sound:
             await asyncio.sleep(.25)
         vc.stop()
         #await vc.disconnect()
@@ -136,8 +140,8 @@ async def play(ctx, url: str):
 
 @client.command()
 async def stop(ctx):
-    global stop_yt
-    stop_yt = True
+    global stop_sound
+    stop_sound = True
     await asyncio.sleep(.1)
 
 # ------------------------------------------------------------------------
@@ -148,6 +152,8 @@ async def stop(ctx):
 async def sounds(ctx, sound: str):
     global last_channel
     global old_vc
+    global stop_sound
+    stop_sound = False
     file_name = "sounds/"
     flag = True
     match sound:
@@ -199,7 +205,7 @@ async def sounds(ctx, sound: str):
         else:
             vc = old_vc
         vc.play(nextcord.FFmpegPCMAudio(source = file_name))
-        while vc.is_playing():
+        while vc.is_playing() and not stop_sound:
             await asyncio.sleep(.25)
         vc.stop()
         #await vc.disconnect()
