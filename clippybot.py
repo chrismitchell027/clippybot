@@ -110,18 +110,35 @@ async def clippy(ctx):
 
 @client.command()
 async def play(ctx, url: str):
+    global stop_yt
+    stop_yt = False
     subprocess.run([os.getcwd() + "/yt-dlp", "-x", "--audio-format", "mp3", url, "-o", "yt.mp3"])
     mp3_exists = os.path.exists("yt.mp3")
     if mp3_exists:
-        vc = await ctx.author.voice.channel.connect()
+        vc = None
+        if ctx.author.voice.channel.id != last_channel or old_vc == None:
+            #await client.get_guild(402256672028098580).change_voice_state(None)
+            #vc = nextcord.utils.get(client.voice_clients, guild = ctx.guild)
+            if old_vc != None:
+                await old_vc.disconnect()
+            vc = await ctx.author.voice.channel.connect()
+            last_channel = ctx.author.voice.channel.id
+            old_vc = vc
+            await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
+        else:
+            vc = old_vc
         vc.play(nextcord.FFmpegPCMAudio(source = "yt.mp3"))
-        while vc.is_playing():
+        while vc.is_playing() and not stop_yt:
             await asyncio.sleep(.25)
         vc.stop()
-        await vc.disconnect()
+        #await vc.disconnect()
         os.remove("yt.mp3")
 
-
+@client.command()
+async def stop(ctx):
+    global stop_yt
+    stop_yt = True
+    await asyncio.sleep(.1)
 
 # ------------------------------------------------------------------------
 #                            SOUND EFFECTS
