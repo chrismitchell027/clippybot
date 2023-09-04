@@ -38,6 +38,9 @@ registerMsg = 'You must register using $register [username] to use bebbie featur
 welcome_channel_id = 1093605192462770316
 rushing_in_role_id = 1095869724472123483
 
+last_channel = None
+old_vc = None
+
 # miners stores information about each miner in a list
 #   miners[itemid][0] = name
 #   miners[itemid][1] = cost
@@ -126,6 +129,8 @@ async def play(ctx, url: str):
 
 @client.command()
 async def sounds(ctx, sound: str):
+    global last_channel
+    global old_vc
     file_name = "sounds/"
     flag = True
     match sound:
@@ -164,12 +169,23 @@ async def sounds(ctx, sound: str):
                 await ctx.send(f"{sound} is not recognized. Type $sounds to see the options.")
                 flag = False
     if flag:
-        vc = await ctx.author.voice.channel.connect()
+        vc = None
+        if ctx.author.voice.channel.id != last_channel or old_vc == None:
+            #await client.get_guild(402256672028098580).change_voice_state(None)
+            #vc = nextcord.utils.get(client.voice_clients, guild = ctx.guild)
+            if old_vc != None:
+                await old_vc.disconnect()
+            vc = await ctx.author.voice.channel.connect()
+            last_channel = ctx.author.voice.channel.id
+            old_vc = vc
+            await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
+        else:
+            vc = old_vc
         vc.play(nextcord.FFmpegPCMAudio(source = file_name))
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
-        await vc.disconnect()
+        #await vc.disconnect()
 
 # ------------------------------------------------------------------------
 #                   RESET ACTIVITY STATUS OF MEMBERS
@@ -425,6 +441,21 @@ async def register(ctx, username: str):
                 vault[userID] = newPlayer
                 await ctx.send(f'You have been registered as {username}')
 
+@client.command()
+async def summon(ctx):
+    global last_channel
+    global old_vc
+
+    if last_channel != None and ctx.author.voice.channel.id != last_channel:
+        #await client.get_guild(402256672028098580).change_voice_state(channel = None)
+        last_channel = ctx.author.voice.channel.id
+        await old_vc.disconnect()
+        old_vc = await ctx.author.voice.channel.connect()
+        await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
+    elif last_channel == None:
+        last_channel = ctx.author.voice.channel.id
+        old_vc = await ctx.author.voice.channel.connect()
+        await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
 
 # ------------------------------------------------------------------------
 #
@@ -497,8 +528,25 @@ async def on_ready():
 
 @client.event
 async def on_voice_state_update(member, before, after):
+    global old_vc
+    global last_channel
+
+    if member.id == client.user.id and after.channel == None:
+        old_vc = None
+        last_channel = None
+        return
+
     if not before.channel and after.channel and after.channel.id != 402257227555143701 and not member.id == client.user.id and not member.id == 159800228088774656:
-        vc = await after.channel.connect()
+        vc = old_vc
+
+        if after.channel.id != last_channel or old_vc == None:
+            if old_vc != None:
+                await old_vc.disconnect()
+            vc = await after.channel.connect()
+            last_channel = after.channel.id
+            old_vc = vc
+            await client.get_guild(402256672028098580).change_voice_state(channel = after.channel, self_deaf = True)
+
         #textchannel = client.get_channel(884995892359331850) #bot spam
         await asyncio.sleep(.25)
         randval = randrange(0, 20)
@@ -515,10 +563,18 @@ async def on_voice_state_update(member, before, after):
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
-        await vc.disconnect()
+        #await vc.disconnect()
 
     elif before.channel and before.channel.id == 402257227555143701 and after.channel and after.channel.id != 402257227555143701 and not member.id == client.user.id and not member.id == 159800228088774656:
-        vc = await after.channel.connect()
+        vc = old_vc
+
+        if after.channel.id != last_channel or old_vc == None:
+            if old_vc != None:
+                await old_vc.disconnect()
+            vc = await after.channel.connect()
+            last_channel = after.channel.id
+            old_vc = vc
+            await client.get_guild(402256672028098580).change_voice_state(channel = after.channel, self_deaf = True)
         #textchannel = client.get_channel(884995892359331850) #bot spam
         await asyncio.sleep(.25)
         randval = randrange(0, 20)
@@ -535,16 +591,25 @@ async def on_voice_state_update(member, before, after):
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
-        await vc.disconnect()
+        #await vc.disconnect()
 
     elif before.channel and before.channel.id == 929075584020127834 and after.channel and not member.id == client.user.id:
-        vc = await after.channel.connect()
+        vc = old_vc
+
+        if after.channel.id != last_channel or old_vc == None:
+            if old_vc != None:
+                await old_vc.disconnect()
+            vc = await after.channel.connect()
+            last_channel = after.channel.id
+            old_vc = vc
+            await client.get_guild(402256672028098580).change_voice_state(channel = after.channel, self_deaf = True)
+
         await asyncio.sleep(.25)
         vc.play(nextcord.FFmpegPCMAudio(source = "sounds/hagay.mp3"))
         while vc.is_playing():
             await asyncio.sleep(.25)
         vc.stop()
-        await vc.disconnect()
+        #await vc.disconnect()
 
 
 
