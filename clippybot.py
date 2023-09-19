@@ -112,37 +112,39 @@ async def clippy(ctx):
 
 @client.command()
 async def play(ctx, url: str):
-    global stop_sound
-    global last_channel
-    global old_vc
-    stop_sound = False
-    subprocess.run([os.getcwd() + "/yt-dlp", "-x", "--audio-format", "mp3", url, "-o", "yt.mp3"])
-    mp3_exists = os.path.exists("yt.mp3")
-    if mp3_exists:
-        vc = None
-        if ctx.author.voice.channel.id != last_channel or old_vc == None:
-            #await client.get_guild(402256672028098580).change_voice_state(None)
-            #vc = nextcord.utils.get(client.voice_clients, guild = ctx.guild)
-            if old_vc != None:
-                await old_vc.disconnect()
-            vc = await ctx.author.voice.channel.connect()
-            last_channel = ctx.author.voice.channel.id
-            old_vc = vc
-            await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
-        else:
-            vc = old_vc
-        vc.play(nextcord.FFmpegPCMAudio(source = "yt.mp3"))
-        while vc.is_playing() and not stop_sound:
-            await asyncio.sleep(.25)
-        vc.stop()
-        #await vc.disconnect()
-        os.remove("yt.mp3")
+    if ctx.channel.id == 884995892359331850:
+        global stop_sound
+        global last_channel
+        global old_vc
+        stop_sound = False
+        subprocess.run([os.getcwd() + "/yt-dlp", "-x", "--audio-format", "mp3", url, "-o", "yt.mp3"])
+        mp3_exists = os.path.exists("yt.mp3")
+        if mp3_exists:
+            vc = None
+            if ctx.author.voice.channel.id != last_channel or old_vc == None:
+                #await client.get_guild(402256672028098580).change_voice_state(None)
+                #vc = nextcord.utils.get(client.voice_clients, guild = ctx.guild)
+                if old_vc != None:
+                    await old_vc.disconnect()
+                vc = await ctx.author.voice.channel.connect()
+                last_channel = ctx.author.voice.channel.id
+                old_vc = vc
+                await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
+            else:
+                vc = old_vc
+            vc.play(nextcord.FFmpegPCMAudio(source = "yt.mp3"))
+            while vc.is_playing() and not stop_sound:
+                await asyncio.sleep(.25)
+            vc.stop()
+            #await vc.disconnect()
+            os.remove("yt.mp3")
 
 @client.command()
 async def stop(ctx):
-    global stop_sound
-    stop_sound = True
-    await asyncio.sleep(.1)
+    if ctx.channel.id == 884995892359331850:
+        global stop_sound
+        stop_sound = True
+        await asyncio.sleep(.1)
 
 # ------------------------------------------------------------------------
 #                            SOUND EFFECTS
@@ -150,65 +152,66 @@ async def stop(ctx):
 
 @client.command()
 async def sounds(ctx, sound: str):
-    global last_channel
-    global old_vc
-    global stop_sound
-    stop_sound = False
-    file_name = "sounds/"
-    flag = True
-    match sound:
-        case "amogus":
-            file_name += "amogus.m4a"
-        case "augh":
-            file_name += "augh.mp3"
-        case "pbnj":
-            file_name += "pbnj.mp3"
-        case "ayoterry":
-            file_name += "ayoterry.mp3"
-        case "bababooey":
-            file_name += "bababooey.3gp"
-        case "dog":
-            file_name += "dog.3gp"
-        case "error":
-            file_name += "error.3gp"
-        case "marioo":
-            file_name += "marioo.3gp"
-        case "taco":
-            file_name += "taco.3gp"
-        case "usb":
-            file_name += "usb.3gp"
-        case "wenkwenk":
-            file_name += "wenkwenk.mp3"
-        case "aight":
-            file_name += "aight.mp3"
-        case _:
-            found_file = False
-            for sounds in saved_sounds:
-                if sound == sounds[0]:
-                    file_name += "saved_sounds/" + sounds[0] + sounds[1]
-                    found_file = True
-                    break
-            if not found_file:
-                await ctx.send(f"{sound} is not recognized. Type $sounds to see the options.")
-                flag = False
-    if flag:
-        vc = None
-        if ctx.author.voice.channel.id != last_channel or old_vc == None:
-            #await client.get_guild(402256672028098580).change_voice_state(None)
-            #vc = nextcord.utils.get(client.voice_clients, guild = ctx.guild)
-            if old_vc != None:
-                await old_vc.disconnect()
-            vc = await ctx.author.voice.channel.connect()
-            last_channel = ctx.author.voice.channel.id
-            old_vc = vc
-            await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
-        else:
-            vc = old_vc
-        vc.play(nextcord.FFmpegPCMAudio(source = file_name))
-        while vc.is_playing() and not stop_sound:
-            await asyncio.sleep(.25)
-        vc.stop()
-        #await vc.disconnect()
+    if ctx.channel.id == 884995892359331850:
+        global last_channel
+        global old_vc
+        global stop_sound
+        stop_sound = False
+        file_name = "sounds/"
+        flag = True
+        match sound:
+            case "amogus":
+                file_name += "amogus.m4a"
+            case "augh":
+                file_name += "augh.mp3"
+            case "pbnj":
+                file_name += "pbnj.mp3"
+            case "ayoterry":
+                file_name += "ayoterry.mp3"
+            case "bababooey":
+                file_name += "bababooey.3gp"
+            case "dog":
+                file_name += "dog.3gp"
+            case "error":
+                file_name += "error.3gp"
+            case "marioo":
+                file_name += "marioo.3gp"
+            case "taco":
+                file_name += "taco.3gp"
+            case "usb":
+                file_name += "usb.3gp"
+            case "wenkwenk":
+                file_name += "wenkwenk.mp3"
+            case "aight":
+                file_name += "aight.mp3"
+            case _:
+                found_file = False
+                for sounds in saved_sounds:
+                    if sound == sounds[0]:
+                        file_name += "saved_sounds/" + sounds[0] + sounds[1]
+                        found_file = True
+                        break
+                if not found_file:
+                    await ctx.send(f"{sound} is not recognized. Type $sounds to see the options.")
+                    flag = False
+        if flag:
+            vc = None
+            if ctx.author.voice.channel.id != last_channel or old_vc == None:
+                #await client.get_guild(402256672028098580).change_voice_state(None)
+                #vc = nextcord.utils.get(client.voice_clients, guild = ctx.guild)
+                if old_vc != None:
+                    await old_vc.disconnect()
+                vc = await ctx.author.voice.channel.connect()
+                last_channel = ctx.author.voice.channel.id
+                old_vc = vc
+                await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
+            else:
+                vc = old_vc
+            vc.play(nextcord.FFmpegPCMAudio(source = file_name))
+            while vc.is_playing() and not stop_sound:
+                await asyncio.sleep(.25)
+            vc.stop()
+            #await vc.disconnect()
 
 # ------------------------------------------------------------------------
 #                   RESET ACTIVITY STATUS OF MEMBERS
@@ -220,265 +223,279 @@ async def sounds(ctx, sound: str):
 
 @client.command()
 async def richest(ctx):
-    with shelve.open('PlayerVault') as vault:
-        richestEmbed = nextcord.Embed(title = 'Richest Players', color = embedBlue)
-        balancesDict = {}
-        userCount = 0
-        for userID in vault:
-            tempPlayer = vault[userID]
-            balancesDict[tempPlayer.get_username()] = tempPlayer.get_balance()
-            userCount += 1
+    if ctx.channel.id == 884995892359331850:
+        with shelve.open('PlayerVault') as vault:
+            richestEmbed = nextcord.Embed(title = 'Richest Players', color = embedBlue)
+            balancesDict = {}
+            userCount = 0
+            for userID in vault:
+                tempPlayer = vault[userID]
+                balancesDict[tempPlayer.get_username()] = tempPlayer.get_balance()
+                userCount += 1
 
-        if userCount > 0:
-            sortedBalancesDict = dict(sorted(balancesDict.items(), key= lambda x:x[1]))
-            balancesView = sortedBalancesDict.values()
-            usernamesView = sortedBalancesDict.keys()
-            balances = []
-            usernames = []
-            for x in balancesView:
-                balances.append(x)
-            for x in usernamesView:
-                usernames.append(x)
-            balances.reverse()
-            usernames.reverse()
-            for x in range(5 if len(balances) > 5 else len(balances)):
-                richestEmbed.add_field(name = str(x + 1), value = f'{usernames[x]} has {balances[x]:,} bebbies')
-            await ctx.send(embed = richestEmbed)
-        else:
-            await ctx.send("You're all broke! Ya mommas broke, ya daddys broke, ya brother broke, ya sister, ya cousins broke, ya auntie broke, seb is broke.")
+            if userCount > 0:
+                sortedBalancesDict = dict(sorted(balancesDict.items(), key= lambda x:x[1]))
+                balancesView = sortedBalancesDict.values()
+                usernamesView = sortedBalancesDict.keys()
+                balances = []
+                usernames = []
+                for x in balancesView:
+                    balances.append(x)
+                for x in usernamesView:
+                    usernames.append(x)
+                balances.reverse()
+                usernames.reverse()
+                for x in range(5 if len(balances) > 5 else len(balances)):
+                    richestEmbed.add_field(name = str(x + 1), value = f'{usernames[x]} has {balances[x]:,} bebbies')
+                await ctx.send(embed = richestEmbed)
+            else:
+                await ctx.send("You're all broke! Ya mommas broke, ya daddys broke, ya brother broke, ya sister, ya cousins broke, ya auntie broke, seb is broke.")
 
 
 @client.command()
 async def vault(ctx):
-    with shelve.open('PlayerVault') as vault:
-        vaultEmbed = nextcord.Embed(title='Bebbies Vault',color = embedBlue)
-        numPlayersInVault = 0
-        for x in vault:
-            tempPlayer = vault[x]
-            vaultEmbed.add_field(name=str(numPlayersInVault + 1), value=f'{tempPlayer.get_username()} has {tempPlayer.get_balance():,}')
-            numPlayersInVault += 1
+    if ctx.channel.id == 884995892359331850:
+        with shelve.open('PlayerVault') as vault:
+            vaultEmbed = nextcord.Embed(title='Bebbies Vault',color = embedBlue)
+            numPlayersInVault = 0
+            for x in vault:
+                tempPlayer = vault[x]
+                vaultEmbed.add_field(name=str(numPlayersInVault + 1), value=f'{tempPlayer.get_username()} has {tempPlayer.get_balance():,}')
+                numPlayersInVault += 1
 
-        if numPlayersInVault > 0:
-            await ctx.send(embed = vaultEmbed)
-        if numPlayersInVault == 0:
-            vaultmessage = 'The vault is empty.'
-            await ctx.send(vaultmessage)
+            if numPlayersInVault > 0:
+                await ctx.send(embed = vaultEmbed)
+            if numPlayersInVault == 0:
+                vaultmessage = 'The vault is empty.'
+                await ctx.send(vaultmessage)
 
 @client.command()
 async def balance(ctx):
-    userID = str(ctx.author.id)
-    user = ctx.author
-    with shelve.open('PlayerVault') as vault:
-        if userID in vault:
-            tempPlayer = vault[userID]
-            userBalance = tempPlayer.get_balance()
-            await ctx.send(f'You have {userBalance:,.1f} bebbies {user.mention}')
-        else:
-            await ctx.send(registerMsg)
+    if ctx.channel.id == 884995892359331850:
+        userID = str(ctx.author.id)
+        user = ctx.author
+        with shelve.open('PlayerVault') as vault:
+            if userID in vault:
+                tempPlayer = vault[userID]
+                userBalance = tempPlayer.get_balance()
+                await ctx.send(f'You have {userBalance:,.1f} bebbies {user.mention}')
+            else:
+                await ctx.send(registerMsg)
 
 @client.command()
 async def bal(ctx):
-    userID = str(ctx.author.id)
-    user = ctx.author
-    with shelve.open('PlayerVault') as vault:
-        if userID in vault:
-            tempPlayer = vault[userID]
-            userBalance = tempPlayer.get_balance()
-            await ctx.send(f'You have {userBalance:,.1f} bebbies {user.mention}')
-        else:
-            await ctx.send(registerMsg)
+    if ctx.channel.id == 884995892359331850:
+        userID = str(ctx.author.id)
+        user = ctx.author
+        with shelve.open('PlayerVault') as vault:
+            if userID in vault:
+                tempPlayer = vault[userID]
+                userBalance = tempPlayer.get_balance()
+                await ctx.send(f'You have {userBalance:,.1f} bebbies {user.mention}')
+            else:
+                await ctx.send(registerMsg)
 
 @client.command()
 async def send(ctx, user: nextcord.User, amt: float):
-    userID = str(ctx.author.id)
-    recipientID = str(user.id)
-    if user and amt > 0:
-        with shelve.open('PlayerVault') as vault:
-            if userID in vault:
-                sendPlayer = vault[userID]
+    if ctx.channel.id == 884995892359331850:
+        userID = str(ctx.author.id)
+        recipientID = str(user.id)
+        if user and amt > 0:
+            with shelve.open('PlayerVault') as vault:
+                if userID in vault:
+                    sendPlayer = vault[userID]
 
-                if recipientID in vault:
-                    recipientPlayer = vault[recipientID]
+                    if recipientID in vault:
+                        recipientPlayer = vault[recipientID]
 
-                    #finished checking if people were registered here:
-                    if sendPlayer.get_balance() >= amt:
-                        sendPlayer.add_balance(-amt)
-                        recipientPlayer.add_balance(amt)
-                        vault[userID] = sendPlayer
-                        vault[recipientID] = recipientPlayer
-                        await ctx.send(f'{ctx.author.mention} has sent {user.mention} {amt:,.1f} bebbies')
-                    else:
-                        await ctx.send(f'You do not have enough bebbies to send.')
+                        #finished checking if people were registered here:
+                        if sendPlayer.get_balance() >= amt:
+                            sendPlayer.add_balance(-amt)
+                            recipientPlayer.add_balance(amt)
+                            vault[userID] = sendPlayer
+                            vault[recipientID] = recipientPlayer
+                            await ctx.send(f'{ctx.author.mention} has sent {user.mention} {amt:,.1f} bebbies')
+                        else:
+                            await ctx.send(f'You do not have enough bebbies to send.')
 
-                else: #recipient not registered
-                    await ctx.send(f'Recipient has not registered a bebbies account! Use $register [username] to make a bebbies account.')
-            else: #sender not registered
-                await ctx.send(registerMsg)
-    else:
-        await ctx.send('You may not send negative bebbies, Ashton.')
+                    else: #recipient not registered
+                        await ctx.send(f'Recipient has not registered a bebbies account! Use $register [username] to make a bebbies account.')
+                else: #sender not registered
+                    await ctx.send(registerMsg)
+        else:
+            await ctx.send('You may not send negative bebbies, Ashton.')
 
 @client.command()
 async def mine(ctx):
-    userID = str(ctx.author.id)
-    user = ctx.author
-    mine = False
-    tooSoon = False
-    amount = 0
-    if userID in cooldowns: #if they have mined before
-        if time.time() - cooldowns[userID] >= MINE_COOLDOWN: #if user is ready to mine again
-            cooldowns[userID] = time.time() #reset cooldown
-            amount = randrange(MINE_MIN, MINE_MAX) #generate amount mined
-            mine = True
-    else:
-        cooldowns[userID] = time.time()
-        amount = randrange(MINE_MIN, MINE_MAX)
-        mine = True
-
-    with shelve.open('PlayerVault') as vault:
-        if userID in vault and mine:
-            tempPlayer = vault[userID]
-            tempPlayer.add_balance(amount)
-            vault[userID] = tempPlayer
-            await ctx.send(f'you mined {amount:,} bebbies {user.mention}')
-        elif userID in vault:
-            await ctx.send(f'too soon man, you gotta wait {(MINE_COOLDOWN - (time.time() - cooldowns[userID])):.1f} seconds to mine again.')
+    if ctx.channel.id == 884995892359331850:
+        userID = str(ctx.author.id)
+        user = ctx.author
+        mine = False
+        tooSoon = False
+        amount = 0
+        if userID in cooldowns: #if they have mined before
+            if time.time() - cooldowns[userID] >= MINE_COOLDOWN: #if user is ready to mine again
+                cooldowns[userID] = time.time() #reset cooldown
+                amount = randrange(MINE_MIN, MINE_MAX) #generate amount mined
+                mine = True
         else:
-            await ctx.send(registerMsg)
-            cooldowns.pop(userID)
+            cooldowns[userID] = time.time()
+            amount = randrange(MINE_MIN, MINE_MAX)
+            mine = True
+
+        with shelve.open('PlayerVault') as vault:
+            if userID in vault and mine:
+                tempPlayer = vault[userID]
+                tempPlayer.add_balance(amount)
+                vault[userID] = tempPlayer
+                await ctx.send(f'you mined {amount:,} bebbies {user.mention}')
+            elif userID in vault:
+                await ctx.send(f'too soon man, you gotta wait {(MINE_COOLDOWN - (time.time() - cooldowns[userID])):.1f} seconds to mine again.')
+            else:
+                await ctx.send(registerMsg)
+                cooldowns.pop(userID)
 
 @client.command()
 async def buy(ctx, publicItemID):
-    userID = str(ctx.author.id)
-    user = ctx.author
-    with shelve.open('PlayerVault') as vault:
-        if userID in vault:
-            tempPlayer = vault[userID]
-            itemPrice = tempPlayer.get_price(int(publicItemID) - 1)
+    if ctx.channel.id == 884995892359331850:
+        userID = str(ctx.author.id)
+        user = ctx.author
+        with shelve.open('PlayerVault') as vault:
+            if userID in vault:
+                tempPlayer = vault[userID]
+                itemPrice = tempPlayer.get_price(int(publicItemID) - 1)
 
-            if tempPlayer.get_balance() >= tempPlayer.get_price(int(publicItemID) - 1):
-                tempPlayer.buy_item(int(publicItemID) - 1)
-                await ctx.send(f'{user.mention} bought {minerIDs[int(publicItemID) - 1]} for {itemPrice:,.1f}')
-                vault[userID] = tempPlayer
-            #if tempPlayer.buy_item(int(publicItemID) - 1):
-            #    await ctx.send(f'{user.mention} bought {minerIDs[int(publicItemID) - 1]} for {itemPrice:,.1f}')
-            #    vault[userID] = tempPlayer
-            #    print('made it to buy')
-            else:
-                await ctx.send(f'{user.mention} is a broke boy and cannot afford a {minerIDs[int(publicItemID) - 1]} for {itemPrice:,.1f} bebbies')
-                print('made it to not buy')
-        elif userID not in vault:
-            await ctx.send(registerMsg)
+                if tempPlayer.get_balance() >= tempPlayer.get_price(int(publicItemID) - 1):
+                    tempPlayer.buy_item(int(publicItemID) - 1)
+                    await ctx.send(f'{user.mention} bought {minerIDs[int(publicItemID) - 1]} for {itemPrice:,.1f}')
+                    vault[userID] = tempPlayer
+                #if tempPlayer.buy_item(int(publicItemID) - 1):
+                #    await ctx.send(f'{user.mention} bought {minerIDs[int(publicItemID) - 1]} for {itemPrice:,.1f}')
+                #    vault[userID] = tempPlayer
+                #    print('made it to buy')
+                else:
+                    await ctx.send(f'{user.mention} is a broke boy and cannot afford a {minerIDs[int(publicItemID) - 1]} for {itemPrice:,.1f} bebbies')
+                    print('made it to not buy')
+            elif userID not in vault:
+                await ctx.send(registerMsg)
 
 @client.command()
 async def inventory(ctx):
-    userID = str(ctx.author.id)
-    #user = ctx.author
-    with shelve.open('PlayerVault') as vault:
-        if userID in vault:
-            tempPlayer = vault[userID]
-            tempInventory = tempPlayer.get_inventory()
-            inventoryEmbed = nextcord.Embed(title = 'Inventory', color=embedBlue)
-            for i in range(len(tempInventory)):
-                inventoryEmbed.add_field(name = str(miners[i][0]), value = f'[{tempInventory[i]}] Owned')
-            await ctx.send(embed = inventoryEmbed)
-        else:
-            await ctx.send(registerMsg)
+    if ctx.channel.id == 884995892359331850:
+        userID = str(ctx.author.id)
+        #user = ctx.author
+        with shelve.open('PlayerVault') as vault:
+            if userID in vault:
+                tempPlayer = vault[userID]
+                tempInventory = tempPlayer.get_inventory()
+                inventoryEmbed = nextcord.Embed(title = 'Inventory', color=embedBlue)
+                for i in range(len(tempInventory)):
+                    inventoryEmbed.add_field(name = str(miners[i][0]), value = f'[{tempInventory[i]}] Owned')
+                await ctx.send(embed = inventoryEmbed)
+            else:
+                await ctx.send(registerMsg)
 
 @client.command()
 async def inv(ctx):
-    userID = str(ctx.author.id)
-    #user = ctx.author
-    with shelve.open('PlayerVault') as vault:
-        if userID in vault:
-            tempPlayer = vault[userID]
-            tempInventory = tempPlayer.get_inventory()
-            inventoryEmbed = nextcord.Embed(title = 'Inventory', color=embedBlue)
-            for i in range(len(tempInventory)):
-                inventoryEmbed.add_field(name = str(miners[i][0]), value = f'[{tempInventory[i]}] Owned')
-            await ctx.send(embed = inventoryEmbed)
-        else:
-            await ctx.send(registerMsg)
+    if ctx.channel.id == 884995892359331850:
+        userID = str(ctx.author.id)
+        #user = ctx.author
+        with shelve.open('PlayerVault') as vault:
+            if userID in vault:
+                tempPlayer = vault[userID]
+                tempInventory = tempPlayer.get_inventory()
+                inventoryEmbed = nextcord.Embed(title = 'Inventory', color=embedBlue)
+                for i in range(len(tempInventory)):
+                    inventoryEmbed.add_field(name = str(miners[i][0]), value = f'[{tempInventory[i]}] Owned')
+                await ctx.send(embed = inventoryEmbed)
+            else:
+                await ctx.send(registerMsg)
 
 @client.command()
 async def server(ctx):
-    serverInv = []
-    for i in range(len(miners)):
-        serverInv.append(0)
-    serverIncome = 0.0
-    serverBal = 0.0
-    playerCount = 0
-    with shelve.open('PlayerVault') as vault:
-        for userID in vault:
-            playerCount += 1
-            tempPlayer = vault[userID]
-            playerInv = tempPlayer.get_inventory()
-            serverIncome += tempPlayer.get_income()
-            serverBal += tempPlayer.get_balance()
-            for i in range(len(playerInv)):
-                serverInv[i] += playerInv[i]
+    if ctx.channel.id == 884995892359331850:
+        serverInv = []
+        for i in range(len(miners)):
+            serverInv.append(0)
+        serverIncome = 0.0
+        serverBal = 0.0
+        playerCount = 0
+        with shelve.open('PlayerVault') as vault:
+            for userID in vault:
+                playerCount += 1
+                tempPlayer = vault[userID]
+                playerInv = tempPlayer.get_inventory()
+                serverIncome += tempPlayer.get_income()
+                serverBal += tempPlayer.get_balance()
+                for i in range(len(playerInv)):
+                    serverInv[i] += playerInv[i]
 
-        invEmbed = nextcord.Embed(title = 'Server Info', color=embedBlue)
-        invEmbed.add_field(name = 'Income', value = f'{serverIncome:,.1f} bebbies per second')
-        invEmbed.add_field(name = 'Bebbies', value = f'{serverBal:,.1f} bebbies')
-        invEmbed.add_field(name = 'Players', value = f'{playerCount}')
-        for i in range(len(serverInv)):
-            invEmbed.add_field(name = str(miners[i][0]), value = f'[{serverInv[i]}] Owned')
+            invEmbed = nextcord.Embed(title = 'Server Info', color=embedBlue)
+            invEmbed.add_field(name = 'Income', value = f'{serverIncome:,.1f} bebbies per second')
+            invEmbed.add_field(name = 'Bebbies', value = f'{serverBal:,.1f} bebbies')
+            invEmbed.add_field(name = 'Players', value = f'{playerCount}')
+            for i in range(len(serverInv)):
+                invEmbed.add_field(name = str(miners[i][0]), value = f'[{serverInv[i]}] Owned')
 
-        await ctx.send(embed = invEmbed)
+            await ctx.send(embed = invEmbed)
 
 @client.command()
 async def income(ctx):
-    userID = str(ctx.author.id)
-    user = ctx.author
-    with shelve.open('PlayerVault') as vault:
-        if userID in vault:
-            tempPlayer = vault[userID]
-            await ctx.send(f'{user.mention} is currently mining {tempPlayer.get_income():,.1f} bebbies per second')
-        else:
-            await ctx.send(registerMsg)
+    if ctx.channel.id == 884995892359331850:
+        userID = str(ctx.author.id)
+        user = ctx.author
+        with shelve.open('PlayerVault') as vault:
+            if userID in vault:
+                tempPlayer = vault[userID]
+                await ctx.send(f'{user.mention} is currently mining {tempPlayer.get_income():,.1f} bebbies per second')
+            else:
+                await ctx.send(registerMsg)
 
 @client.command()
 async def shop(ctx):
-    userID = str(ctx.author.id)
-    with shelve.open('PlayerVault') as vault:
-        if userID in vault:
-            tempPlayer = vault[userID]
-            shopEmbed = nextcord.Embed(title = f"Bebbies Shop for {tempPlayer.get_username()}", color=embedBlue)
-            publicItemID = 0
-            for miner in miners:
-                publicItemID += 1
-                shopEmbed.add_field(name = f'Tier {str(publicItemID)} [{tempPlayer.get_inventoryItem(int(publicItemID) - 1)} Owned]', value = f'{miner[0]}\nProduction: {miner[2]:,} per second\nCost: {tempPlayer.get_price(publicItemID - 1):,} bebbies')
-            await ctx.send(embed = shopEmbed)
-        else:
-            await ctx.send(registerMsg)
+    if ctx.channel.id == 884995892359331850:
+        userID = str(ctx.author.id)
+        with shelve.open('PlayerVault') as vault:
+            if userID in vault:
+                tempPlayer = vault[userID]
+                shopEmbed = nextcord.Embed(title = f"Bebbies Shop for {tempPlayer.get_username()}", color=embedBlue)
+                publicItemID = 0
+                for miner in miners:
+                    publicItemID += 1
+                    shopEmbed.add_field(name = f'Tier {str(publicItemID)} [{tempPlayer.get_inventoryItem(int(publicItemID) - 1)} Owned]', value = f'{miner[0]}\nProduction: {miner[2]:,} per second\nCost: {tempPlayer.get_price(publicItemID - 1):,} bebbies')
+                await ctx.send(embed = shopEmbed)
+            else:
+                await ctx.send(registerMsg)
 
 @client.command()
 async def register(ctx, username: str):
-    userID = str(ctx.author.id)
-    if username:
-        with shelve.open('PlayerVault') as vault:
-            if userID in vault:
-                await ctx.send('You are already registered!')
-            else:
-                newPlayer = Player(userID, username)
-                vault[userID] = newPlayer
-                await ctx.send(f'You have been registered as {username}')
+    if ctx.channel.id == 884995892359331850:
+        userID = str(ctx.author.id)
+        if username:
+            with shelve.open('PlayerVault') as vault:
+                if userID in vault:
+                    await ctx.send('You are already registered!')
+                else:
+                    newPlayer = Player(userID, username)
+                    vault[userID] = newPlayer
+                    await ctx.send(f'You have been registered as {username}')
 
 @client.command()
 async def summon(ctx):
-    global last_channel
-    global old_vc
+    if ctx.channel.id == 884995892359331850:
+        global last_channel
+        global old_vc
 
-    if last_channel != None and ctx.author.voice.channel.id != last_channel:
-        #await client.get_guild(402256672028098580).change_voice_state(channel = None)
-        last_channel = ctx.author.voice.channel.id
-        await old_vc.disconnect()
-        old_vc = await ctx.author.voice.channel.connect()
-        await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
-    elif last_channel == None:
-        last_channel = ctx.author.voice.channel.id
-        old_vc = await ctx.author.voice.channel.connect()
-        await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
+        if last_channel != None and ctx.author.voice.channel.id != last_channel:
+            #await client.get_guild(402256672028098580).change_voice_state(channel = None)
+            last_channel = ctx.author.voice.channel.id
+            await old_vc.disconnect()
+            old_vc = await ctx.author.voice.channel.connect()
+            await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
+        elif last_channel == None:
+            last_channel = ctx.author.voice.channel.id
+            old_vc = await ctx.author.voice.channel.connect()
+            await client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
 
 # ------------------------------------------------------------------------
 #
