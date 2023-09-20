@@ -196,6 +196,8 @@ async def sounds(ctx, sound: str):
                     flag = False
         if flag:
             vc = None
+            if ctx.author.id == 228299051517476864 and sound == "sop" or sound == "bb" or sound == "bcs" or sound == "fuckyou": # jet is not allowed to play loud sounds
+                return
             if ctx.author.voice.channel.id != last_channel or old_vc == None:
                 #await client.get_guild(402256672028098580).change_voice_state(None)
                 #vc = nextcord.utils.get(client.voice_clients, guild = ctx.guild)
