@@ -73,10 +73,7 @@ class SoundCommands(commands.Cog):
     async def sounds(self, ctx, sound: str):
         if ctx.channel.id != 884995892359331850:
             return
-        last_channel = self.bot.last_channel
-        old_vc = self.bot.old_vc
-        stop_sound = self.bot.stop_sound
-        stop_sound = False
+        self.client.stop_sound = False
         file_name = "sounds/"
         flag = True
         found_file = False
@@ -92,19 +89,19 @@ class SoundCommands(commands.Cog):
             vc = None
             if ctx.author.id == 228299051517476864 and sound == "sop" or sound == "bb" or sound == "bcs" or sound == "fuckyou": # jet is not allowed to play loud sounds
                 return
-            if ctx.author.voice.channel.id != last_channel or old_vc == None:
+            if ctx.author.voice.channel.id != self.client.last_channel or self.client.old_vc == None:
                 #await client.get_guild(402256672028098580).change_voice_state(None)
                 #vc = nextcord.utils.get(client.voice_clients, guild = ctx.guild)
-                if old_vc != None:
-                    await old_vc.disconnect()
+                if self.client.old_vc != None:
+                    await self.client.old_vc.disconnect()
                 vc = await ctx.author.voice.channel.connect()
-                last_channel = ctx.author.voice.channel.id
-                old_vc = vc
+                self.client.last_channel = ctx.author.voice.channel.id
+                self.client.old_vc = vc
                 await self.client.get_guild(402256672028098580).change_voice_state(channel = ctx.author.voice.channel, self_deaf = True)
             else:
-                vc = old_vc
+                vc = self.client.old_vc
             vc.play(nextcord.FFmpegPCMAudio(source = file_name))
-            while vc.is_playing() and not stop_sound:
+            while vc.is_playing() and not self.client.stop_sound:
                 await asyncio.sleep(.25)
             vc.stop()
             #await vc.disconnect()
