@@ -3,7 +3,7 @@
 
 #include <include/dpp/dpp.h>
 
-std::vector<int> miners;
+nlohmann::json miners;
 
 class Player
 {
@@ -23,12 +23,12 @@ public:
     double GetBalance() const;
     void SetBalance(double amount);
     void AddBalance(double amount);
-    void BuyItem(int itemID);
-    void GetPrice(int itemID) const;
+    bool BuyItem(int itemID);
+    double GetPrice(int itemID) const;
     const std::vector<int>& GetInventory() const;
     int GetInventoryItem(int itemID) const;
-    void SetInventory(std::vector<int> inventory);
-    void GetIncome() const;
+    void SetInventory(std::vector<int>& inventory);
+    double GetIncome() const;
 
 
 private:
