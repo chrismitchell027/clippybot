@@ -1,9 +1,10 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <include/dpp/dpp.h>
+#include <dpp/dpp.h>
+#include <utility>
 
-nlohmann::json miners;
+std::vector<std::pair<double,double>> miners;
 
 class Player
 {
