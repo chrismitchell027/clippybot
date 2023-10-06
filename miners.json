@@ -1,0 +1,79 @@
+{
+    "Sneaky Slave":
+    [
+        {
+            "cost" : 15.0,
+            "production" : 0.1
+        }
+    ],
+    "Quoin Counter" :
+    [
+        {
+            "cost" : 100.0,
+            "production" : 0.5
+        }
+    ],
+    "Beb Miner" :
+    [
+        {
+            "cost" : 500.0,
+            "production" : 4.0
+        }
+    ],
+    "Folgies Factory" :
+    [
+        {
+            "cost" : 3000.0,
+            "production" : 10.0
+        }
+    ],
+    "Beaky Bank" :
+    [
+        {
+            "cost" : 10000.0,
+            "production" : 40.0
+        }
+    ],
+    "Seb Shipment" :
+    [
+        {
+            "cost" : 40000.0,
+            "production" : 100.0
+        }
+    ],
+    "Alchemist Ashton" :
+    [
+        {
+            "cost" : 200000.0,
+            "production" : 400.0
+        }
+    ],
+    "Nether Portal" :
+    [
+        {
+            "cost" : 1666666.0,
+            "production" : 6666.0
+        }
+    ],
+    "Sheckle Shiller" :
+    [
+        {
+            "cost" : 123456789.0,
+            "production" : 98765.0
+        }
+    ],
+    "Bebastian Plantation" :
+    [
+        {
+            "cost" : 3999999999.0,
+            "production" : 999999.0
+        }
+    ],
+    "Joe Miner" :
+    [
+        {
+            "cost" : 75000000000.0,
+            "production" : 10000000.0
+        }
+    ],
+}
