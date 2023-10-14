@@ -4,12 +4,12 @@
 #include <dpp/dpp.h>
 #include <utility>
 
-std::vector<std::pair<double,double>> miners;
+extern std::vector<std::pair<double,double>> miners;
 
 class Player
 {
 public:
-    Player::Player(dpp::snowflake userID, std::string username) : m_sUserID(userID), m_szUsername(username), m_vInventory()
+    Player(dpp::snowflake userID, std::string username) : m_snoUserID(userID), m_szUsername(username), m_vInventory()
     {
         for (auto x : miners)
             m_vInventory.push_back(0);
@@ -33,7 +33,7 @@ public:
 
 
 private:
-    dpp::snowflake m_sUserID;
+    dpp::snowflake m_snoUserID;
     std::string m_szUsername;
     double m_dBalance = 0.0;
     std::vector<int> m_vInventory;

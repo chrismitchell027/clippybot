@@ -2,7 +2,7 @@
 
 dpp::snowflake Player::GetUserID() const
 {
-    return m_sUserID; 
+    return m_snoUserID; 
 }
 
 const std::string& Player::GetUsername() const
@@ -20,7 +20,7 @@ void Player::ResetIncome()
     double income = 0;
     for (auto i : m_vInventory)
     {
-        float minerProduction = miners[i][2];
+        float minerProduction = miners[i].second;
         int quantityOwned = m_vInventory[i];
         income += minerProduction * quantityOwned;
     }
@@ -57,12 +57,12 @@ bool Player::BuyItem(int itemID)
     double price = GetPrice(itemID);
     AddBalance(-price);
     m_vInventory[itemID] += 1;
-    m_dIncome += miners[itemID][2];
+    m_dIncome += miners[itemID].second;
     if (m_dBalance >= price)
     {
         AddBalance(-price);
         m_vInventory[itemID] += 1;
-        m_dIncome += miners[itemID][2];
+        m_dIncome += miners[itemID].second;
         return true;
     }
     return false;
@@ -70,7 +70,7 @@ bool Player::BuyItem(int itemID)
 
 double Player::GetPrice(int itemID) const
 {
-    double baseCost = miners[itemID][1];
+    double baseCost = miners[itemID].first;
     int numOwned = m_vInventory[itemID];
     double price = baseCost * pow(1.12, numOwned);
     return round(price * 10) / 10;
