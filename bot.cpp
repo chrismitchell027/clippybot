@@ -7,9 +7,9 @@
 /**
  * Reads audio data and puts it into vector,
  * taken from https://dpp.dev/stream-mp3-discord-bot.html
- * @return Audio vector with data
+ * @return Vector with audio data
 */
-std::vector<uint8_t> Bot::ReadAudioData(const std::string& file_dir)
+std::vector<uint8_t> Bot::ReadAudioData(const std::string& file_dir) const
 {
     std::vector<uint8_t> pcmdata;
 
@@ -48,13 +48,13 @@ std::vector<uint8_t> Bot::ReadAudioData(const std::string& file_dir)
 	return pcmdata;
 }
 
-void Bot::CmdClippy(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+void Bot::CmdClippy(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
 {
     BOT_SPAM_CHECK 
         cs.message_event.value().reply(CLIPPY_MSG[m_rDistribution(m_eGen)]);
 }
 
-void Bot::PlayYoutube(dpp::discord_voice_client *vc)
+void Bot::PlayYoutube(dpp::discord_voice_client *vc) const
 {
     auto sound_data = ReadAudioData("yt.mp3");
 
@@ -65,6 +65,14 @@ void Bot::PlayYoutube(dpp::discord_voice_client *vc)
     {
         vc->send_audio_raw((uint16_t*)sound_data.data(), sound_data.size());
     }
+}
+
+void Bot::PlaySound(dpp::discord_voice_client *vc) const
+{
+    auto sound_data = ReadAudioData(m_szFileName);
+
+    if (vc)
+        vc->send_audio_raw((uint16_t*)sound_data.data(), sound_data.size());
 }
 
 void Bot::CmdPlay(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
@@ -112,17 +120,17 @@ void Bot::CmdPlay(const std::string& cmd, const dpp::parameter_list_t& param_lis
     }
 }
 
-void Bot::CmdStop(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+void Bot::CmdStop(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
 {
     BOT_SPAM_CHECK
     {
         dpp::voiceconn *v = cs.message_event.value().from->get_voice(cs.guild_id);
-        if (v)
+        if (v && v->voiceclient)
             v->voiceclient->stop_audio();
     }
 }
 
-void Bot::CmdSummon(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+void Bot::CmdSummon(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
 {
     BOT_SPAM_CHECK
     {
@@ -132,10 +140,63 @@ void Bot::CmdSummon(const std::string& cmd, const dpp::parameter_list_t& param_l
         if (v != nullptr && g->voice_members[cs.issuer.id].channel_id != v->channel_id)
         {
             cs.message_event.value().from->disconnect_voice(cs.guild_id);
-            //m_snoJoinUser = cs.issuer.id;
             g->connect_member_voice(cs.issuer.id, false, true);
         }
         else if (v == nullptr)
             g->connect_member_voice(cs.issuer.id, false, true);
+    }
+}
+
+void Bot::CmdSounds(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+{
+    BOT_SPAM_CHECK
+    {
+        std::string param = std::get<std::string>(param_list[0].second);
+        if (param.empty())
+        {
+            cs.message_event.value().reply("Sound placeholder");
+            return;
+        }
+
+        if (cs.issuer.id == JET_ID && (param == "sop" || param == "bb" || param == "bcs" || param == "fuckyou"))// # jet is not allowed to play loud sounds
+        {
+            cs.message_event.value().reply("buhhhh no");
+            return;
+        }
+
+        for (auto s : sounds)
+            if (s.first == param)
+            {
+                m_szFileName = std::format("sounds/saved_sounds/{}.{}", s.first, s.second);
+                if (!std::filesystem::exists(m_szFileName))
+                {
+                    cs.message_event.value().reply(std::format("Error: {}.{} doesn't exist", s.first, s.second));
+                    return;
+                }
+
+                dpp::guild *g = dpp::find_guild(cs.guild_id);
+                dpp::voiceconn *v = cs.message_event.value().from->get_voice(cs.guild_id);
+
+                //in the same channel
+                if (v != nullptr && g->voice_members[cs.issuer.id].channel_id == v->channel_id)
+                    PlaySound(v->voiceclient);
+                //not in the same channel
+                else if(v != nullptr)
+                {
+                    cs.message_event.value().from->disconnect_voice(cs.guild_id);
+                    g->connect_member_voice(cs.issuer.id, false, true);
+                    m_bNeedToSound = true;
+                }
+                //not connected at all
+                else
+                {
+                    g->connect_member_voice(cs.issuer.id, false, true);
+                    m_bNeedToSound = true;
+                }
+
+                return;
+            }
+        
+        cs.message_event.value().reply(std::format("Sound {} doesn't exist", param));
     }
 }

@@ -79,10 +79,6 @@
         "type": "mp3",
         "author": 0
     },
-    "he_he_he_ha": {
-        "type": "mp3",
-        "author": 0
-    },
     "mrbeast": {
         "type": "mp3",
         "author": 0
@@ -159,19 +155,7 @@
         "type": "mp3",
         "author": 0
     },
-    "jett": {
-        "type": "mp3",
-        "author": 0
-    },
     "supersoda": {
-        "type": "mp3",
-        "author": 0
-    },
-    "fuckyou": {
-        "type": "mp3",
-        "author": 0
-    },
-    "pull_me_back_in": {
         "type": "mp3",
         "author": 0
     },
@@ -182,5 +166,229 @@
     "yatatata": {
         "type": "mp3",
         "author": 0
+    },
+    "cusswords": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "fazbear": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "gungaginga": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "fuckyou": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "wii": {
+        "type": "mp3",
+        "author": 336266854232489995
+    },
+    "what": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "rockandstone": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "crabrave": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "bliss": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "bubbles": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "212": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "perfect": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "dramatic": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "bb": {
+        "type": "mp3",
+        "author": 336266854232489995
+    },
+    "ufo": {
+        "type": "wv",
+        "author": 128983406074789888
+    },
+    "bowser": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "bcs": {
+        "type": "mp3",
+        "author": 336266854232489995
+    },
+    "voicemail": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "unexpecteditem": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "unexpecteditemlong": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "mikepp": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "sussybaka": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "nosquidward": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "bothsussy": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "impostor": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "guesswhat": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "boost": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "sebanswer": {
+        "type": "mp3",
+        "author": 336266854232489995
+    },
+    "sebgeton": {
+        "type": "mp3",
+        "author": 336266854232489995
+    },
+    "waltersex": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "boostsoprano": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "cheekedup": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "sebshutup": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "gotout": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "sebsex": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "kys": {
+        "type": "mp3",
+        "author": 283008781896515604
+    },
+    "dickaway": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "look": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "peterpiper": {
+        "type": "wav",
+        "author": 128983406074789888
+    },
+    "sleepy": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "seanshutup": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "wdym": {
+        "type": "mp3",
+        "author": 128983406074789888
+    },
+    "obamna": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "stay": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "sop": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "byebye": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "draingang": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "ohfr": {
+        "type": "mp3",
+        "author": 128983406074789888
+    },
+    "heheheha": {
+        "type": "mp3",
+        "author": 128983406074789888
+    },
+    "jeeettt": {
+        "type": "mp3",
+        "author": 336266854232489995
+    },
+    "jet": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "leftjet": {
+        "type": "mp3",
+        "author": 336266854232489995
+    },
+    "jeeetttttt": {
+        "type": "mp3",
+        "author": 336266854232489995
+    },
+    "whosalittlebitch": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "monkey": {
+        "type": "mp3",
+        "author": 305542053377343489
+    },
+    "rightjet": {
+        "type": "mp3",
+        "author": 336266854232489995
     }
 }

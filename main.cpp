@@ -2,6 +2,7 @@
 #include <fstream>
 
 std::vector<std::pair<double,double>> miners;
+std::vector<std::pair<std::string, std::string>> sounds;
 
 int main()
 {
