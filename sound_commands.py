@@ -70,24 +70,25 @@ class SoundCommands(commands.Cog):
                     return
 
     @commands.command()
-    async def sounds(self, ctx, sound: str):
-        if ctx.channel.id != 884995892359331850:
+    async def sounds(self, ctx, sound_name_input: str):
+        if ctx.channel.id != 884995892359331850: # bot_spam text channel id
             return
         self.client.stop_sound = False
         file_name = "sounds/"
-        flag = True
         found_file = False
-        for sounds in saved_sounds:
-            if sound == sounds[0]:
-                file_name += "saved_sounds/" + sounds[0] + sounds[1]
+
+        for sound in saved_sounds:
+            if sound_name_input == sound[0]:
+                file_name += "saved_sounds/" + sound[0] + sound[1]
                 found_file = True
                 break
+
         if not found_file:
-            await ctx.send(f"{sound} is not recognized. Type $sounds to see the options.")
-            flag = False
-        if flag:
+            await ctx.send(f"{sound_name_input} is not recognized. Type $sounds to see the options.")
+
+        if found_file:
             vc = None
-            if ctx.author.id == 228299051517476864 and sound == "sop" or sound == "bb" or sound == "bcs" or sound == "fuckyou": # jet is not allowed to play loud sounds
+            if ctx.author.id == 228299051517476864 and sound_name_input == "sop" or sound_name_input == "bb" or sound_name_input == "bcs" or sound_name_input == "fuckyou": # jet is not allowed to play loud sounds
                 return
             if ctx.author.voice.channel.id != self.client.last_channel or self.client.old_vc == None:
                 #await client.get_guild(402256672028098580).change_voice_state(None)
@@ -110,7 +111,7 @@ class SoundCommands(commands.Cog):
     @commands.Cog.listener()
     async def on_sounds_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            sounds_per_page = 10
+            sounds_per_page = 12
             sound_names = [sound[0] for sound in self.saved_sounds]
             pages = partition_sounds_into_pages(sound_names, sounds_per_page)
             view = PageView(pages)
