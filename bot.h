@@ -7,6 +7,8 @@
 #include <mpg123.h>
 #include <out123.h>
 #include <regex>
+#include <filesystem>
+#include <fstream>
 
 extern std::vector<std::pair<std::string, std::string>> sounds;
 
@@ -111,11 +113,29 @@ public:
                 {
                     if (event.msg.attachments.size() == 1 && event.msg.attachments[0].size < 10000000)
                     {
-                        //TODO: check if file already exists
+                        
+                        std::string filename = event.msg.attachments[0].filename;
+                        bool file_exists = std::filesystem::exists(std::format("sounds/saved_sounds/{}", filename));
 
-                        event.msg.attachments[0].download([](const dpp::http_request_completion& req)
+                        if (filename.substr(filename.find_last_of('.')) != std::string(".mp3"))
                         {
+                            event.reply("Sound must be an mp3");
+                            return;
+                        }
+
+                        if (file_exists)
+                        {
+                            event.reply(std::format("Sound {} already exists", filename));
+                            return;
+                        }
+
+                        event.reply(std::format("{} successfully added!", filename));
+
+                        event.msg.attachments[0].download([filename](const dpp::http_request_completion_t& req)
+                        {
+                            std::fstream mp3(filename, std::fstream::out | std::fstream::binary);
                             
+                            mp3.write(req.body.c_str(), req.body.size());
                         }
                         );
                     }
@@ -129,7 +149,7 @@ public:
     }
 
     std::vector<uint8_t> ReadAudioData(const std::string&) const;
-    void CmdClippy(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
+    void CmdClippy(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdPlay(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdStop(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
     void CmdSummon(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;

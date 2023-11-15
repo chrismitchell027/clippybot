@@ -48,7 +48,7 @@ std::vector<uint8_t> Bot::ReadAudioData(const std::string& file_dir) const
 	return pcmdata;
 }
 
-void Bot::CmdClippy(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
+void Bot::CmdClippy(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     BOT_SPAM_CHECK 
         cs.message_event.value().reply(CLIPPY_MSG[m_rDistribution(m_eGen)]);
