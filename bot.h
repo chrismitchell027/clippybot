@@ -29,12 +29,8 @@ public:
         }
 
         sounds = std::vector<std::pair<std::string, std::string>>();
-        std::ifstream soundfile("added_sounds.json");
-        nlohmann::json soundjson = nlohmann::ordered_json::parse(soundfile);
-        soundfile.close();
 
-        for (auto it = soundjson.items().begin(); it != soundjson.items().end(); ++it)
-            sounds.push_back(std::make_pair(it.key(), soundjson[it.key()]["type"]));
+        ReadSounds();
 
         on_log(dpp::utility::cout_logger());
 
@@ -101,6 +97,7 @@ public:
 
         on_message_create([this](const dpp::message_create_t& event)
         {
+            //TODO: make sound file get added to json
             if (event.msg.is_dm())
             {
                 //handle mp3s
@@ -131,6 +128,9 @@ public:
 
                         event.reply(std::format("{} successfully added!", filename));
 
+                        AddSound(filename.substr(0, filename.find_last_of('.')), event.msg.author.id);
+                        ReadSounds();
+
                         event.msg.attachments[0].download([filename](const dpp::http_request_completion_t& req)
                         {
                             std::fstream mp3(filename, std::fstream::out | std::fstream::binary);
@@ -149,6 +149,9 @@ public:
     }
 
     std::vector<uint8_t> ReadAudioData(const std::string&) const;
+    void ReadSounds();
+    void AddSound(std::string, dpp::snowflake);
+    void ListSounds(dpp::command_source);
     void CmdClippy(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdPlay(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdStop(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;

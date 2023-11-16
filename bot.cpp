@@ -1,6 +1,4 @@
 #include "bot.h"
-#include <format>
-#include <filesystem>
 
 #define BOT_SPAM_CHECK if (cs.channel_id == BOT_SPAM_ID)
 
@@ -46,6 +44,57 @@ std::vector<uint8_t> Bot::ReadAudioData(const std::string& file_dir) const
     mpg123_close(mh);
     mpg123_delete(mh);
 	return pcmdata;
+}
+
+void Bot::ReadSounds()
+{
+    sounds.clear();
+
+    std::ifstream soundfile("added_sounds.json");
+    nlohmann::json soundjson = nlohmann::ordered_json::parse(soundfile);
+
+    for (auto it = soundjson.items().begin(); it != soundjson.items().end(); ++it)
+        sounds.push_back(std::make_pair(it.key(), soundjson[it.key()]["type"]));
+}
+
+void Bot::AddSound(std::string sound, dpp::snowflake author)
+{
+    std::ifstream soundfile("added_sounds.json");
+    nlohmann::json soundjson = nlohmann::ordered_json::parse(soundfile);
+    soundfile.close();
+
+    soundjson[sound]["type"] = "mp3";
+    soundjson[sound]["author"] = (uint64_t)author;
+
+    std::fstream soundfile_write("added_sounds.json", std::fstream::out | std::fstream::trunc);
+    soundfile_write << soundjson.dump(4);
+}
+
+void Bot::ListSounds(dpp::command_source cs)
+{
+    int sounds_page_num = 1;
+    int sounds_added_count = 0;
+    dpp::embed sounds_embed;
+    sounds_embed.title = std::format("Sounds Page {}", sounds_page_num);
+    sounds_embed.color = 0x00DAFF;
+
+    for (auto s : sounds)
+    {
+        sounds_embed.add_field(s.first, "", true);
+        sounds_added_count++;
+        if (sounds_added_count == 25)
+        {
+            cs.message_event.value().send(dpp::message(cs.channel_id, sounds_embed));
+            sounds_page_num++;
+            sounds_embed = dpp::embed();
+            sounds_embed.title = std::format("Sounds Page {}", sounds_page_num);
+            sounds_embed.color = 0x00DAFF;
+            sounds_added_count = 0;
+        }
+    }
+
+    if (sounds_added_count > 0)
+        cs.message_event.value().send(dpp::message(cs.channel_id, sounds_embed));
 }
 
 void Bot::CmdClippy(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
@@ -154,7 +203,7 @@ void Bot::CmdSounds(const std::string& cmd, const dpp::parameter_list_t& param_l
         std::string param = std::get<std::string>(param_list[0].second);
         if (param.empty())
         {
-            cs.message_event.value().reply("Sound placeholder");
+            ListSounds(cs);
             return;
         }
 
