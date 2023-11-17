@@ -66,17 +66,65 @@ public:
         }
         );
 
-        //if bot disconnects to switch channels
-/*         on_voice_client_disconnect([this](const dpp::voice_client_disconnect_t& event)
+        on_voice_state_update([this](const dpp::voice_state_update_t& event)
         {
-            if (event.user_id == this->me.id && !m_snoJoinUser.empty())
+            if (event.state.user_id != me.id)
             {
-                dpp::guild *g = dpp::find_guild(SERVER_ID);
-                g->connect_member_voice(m_snoJoinUser, false, true);
-                m_snoJoinUser = 0;
+                dpp::voiceconn *v = event.from->get_voice(event.state.guild_id);
+                m_szFileName = "sounds/welcomeback.mp3";
+                dpp::guild *g = dpp::find_guild(event.state.guild_id);
+                if (m_UserToChannel.find(event.state.user_id) != m_UserToChannel.end())//user is found in map
+                {
+                    if (m_UserToChannel[event.state.user_id].empty() && !event.state.channel_id.empty())//if user left previously and is now in channel
+                    {
+                        //in the same channel
+                        if (v != nullptr && event.state.channel_id == v->channel_id)
+                        {
+                            PlaySound(v->voiceclient);
+                        }
+                        //not in the same channel
+                        else if(v != nullptr)
+                        {
+                            event.from->disconnect_voice(event.state.guild_id);
+                            g->connect_member_voice(event.state.user_id, false, true);
+                            m_bNeedToSound = true;
+                        }
+                        //not connected at all
+                        else
+                        {
+                            g->connect_member_voice(event.state.user_id, false, true);
+                            m_bNeedToSound = true;
+                        }
+                    }
+                }
+                else//user not found in map
+                {
+                    if (!event.state.channel_id.empty())//if user joined
+                    {
+                        //in the same channel
+                        if (v != nullptr && event.state.channel_id == v->channel_id)
+                        {
+                            PlaySound(v->voiceclient);
+                        }
+                        //not in the same channel
+                        else if(v != nullptr)
+                        {
+                            event.from->disconnect_voice(event.state.guild_id);
+                            g->connect_member_voice(event.state.user_id, false, true);
+                            m_bNeedToSound = true;
+                        }
+                        //not connected at all
+                        else
+                        {
+                            g->connect_member_voice(event.state.user_id, false, true);
+                            m_bNeedToSound = true;
+                        }
+                    }
+                }
+                m_UserToChannel[event.state.user_id] = event.state.channel_id;
             }
         }
-        ); */
+        );
 
 /*         on_voice_state_update([this](const dpp::voice_state_update_t& event)
         {
@@ -97,49 +145,12 @@ public:
 
         on_message_create([this](const dpp::message_create_t& event)
         {
-            //TODO: make sound file get added to json
             if (event.msg.is_dm())
             {
                 //handle mp3s
                 event.cancel_event();
 
-                auto author_roles = dpp::find_guild_member(SERVER_ID, event.msg.author.id).roles;
-
-                //if author is at least beaky role
-                if (std::find(author_roles.begin(), author_roles.end(), BEAKY_ROLE_ID) != author_roles.end())
-                {
-                    if (event.msg.attachments.size() == 1 && event.msg.attachments[0].size < 10000000)
-                    {
-                        
-                        std::string filename = event.msg.attachments[0].filename;
-                        bool file_exists = std::filesystem::exists(std::format("sounds/saved_sounds/{}", filename));
-
-                        if (filename.substr(filename.find_last_of('.')) != std::string(".mp3"))
-                        {
-                            event.reply("Sound must be an mp3");
-                            return;
-                        }
-
-                        if (file_exists)
-                        {
-                            event.reply(std::format("Sound {} already exists", filename));
-                            return;
-                        }
-
-                        event.reply(std::format("{} successfully added!", filename));
-
-                        AddSound(filename.substr(0, filename.find_last_of('.')), event.msg.author.id);
-                        ReadSounds();
-
-                        event.msg.attachments[0].download([filename](const dpp::http_request_completion_t& req)
-                        {
-                            std::fstream mp3(filename, std::fstream::out | std::fstream::binary);
-                            
-                            mp3.write(req.body.c_str(), req.body.size());
-                        }
-                        );
-                    }
-                }
+                HandleSoundDM(event);
             }
         }
         );
@@ -151,7 +162,8 @@ public:
     std::vector<uint8_t> ReadAudioData(const std::string&) const;
     void ReadSounds();
     void AddSound(std::string, dpp::snowflake);
-    void ListSounds(dpp::command_source);
+    void ListSounds(dpp::command_source) const;
+    void HandleSoundDM(const dpp::message_create_t&);
     void CmdClippy(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdPlay(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdStop(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
@@ -205,6 +217,7 @@ private:
     bool m_bNeedToPlay = false;
     bool m_bNeedToSound = false;
     std::string m_szFileName;
+    std::unordered_map<dpp::snowflake, dpp::snowflake> m_UserToChannel;
 };
 
 #endif

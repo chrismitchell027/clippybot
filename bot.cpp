@@ -70,7 +70,7 @@ void Bot::AddSound(std::string sound, dpp::snowflake author)
     soundfile_write << soundjson.dump(4);
 }
 
-void Bot::ListSounds(dpp::command_source cs)
+void Bot::ListSounds(dpp::command_source cs) const
 {
     int sounds_page_num = 1;
     int sounds_added_count = 0;
@@ -95,6 +95,47 @@ void Bot::ListSounds(dpp::command_source cs)
 
     if (sounds_added_count > 0)
         cs.message_event.value().send(dpp::message(cs.channel_id, sounds_embed));
+}
+
+void Bot::HandleSoundDM(const dpp::message_create_t& event)
+{
+    auto author_roles = dpp::find_guild_member(SERVER_ID, event.msg.author.id).get_roles();
+
+    //if author is at least beaky role
+    if (std::find(author_roles.begin(), author_roles.end(), BEAKY_ROLE_ID) != author_roles.end())
+    {
+        if (event.msg.attachments.size() == 1 && event.msg.attachments[0].size < 10000000)
+        {
+            
+            std::string filename = event.msg.attachments[0].filename;
+            bool file_exists = std::filesystem::exists(std::format("sounds/saved_sounds/{}", filename));
+
+            if (filename.substr(filename.find_last_of('.')) != std::string(".mp3"))
+            {
+                event.reply("Sound must be an mp3");
+                return;
+            }
+
+            if (file_exists)
+            {
+                event.reply(std::format("Sound {} already exists", filename));
+                return;
+            }
+
+            event.reply(std::format("{} successfully added!", filename));
+
+            AddSound(filename.substr(0, filename.find_last_of('.')), event.msg.author.id);
+            ReadSounds();
+
+            event.msg.attachments[0].download([filename](const dpp::http_request_completion_t& req)
+            {
+                std::fstream mp3(filename, std::fstream::out | std::fstream::binary);
+                
+                mp3.write(req.body.c_str(), req.body.size());
+            }
+            );
+        }
+    }
 }
 
 void Bot::CmdClippy(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
