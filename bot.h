@@ -68,7 +68,7 @@ public:
 
         on_voice_state_update([this](const dpp::voice_state_update_t& event)
         {
-            if (event.state.user_id != me.id)
+            if (event.state.user_id != me.id && event.state.channel_id != AFK_ID)
             {
                 dpp::voiceconn *v = event.from->get_voice(event.state.guild_id);
                 m_szFileName = "sounds/welcomeback.mp3";
@@ -204,6 +204,7 @@ private:
     const dpp::snowflake SERVER_ID = 402256672028098580;
     const dpp::snowflake BOT_SPAM_ID = 884995892359331850;
     const dpp::snowflake BEAKY_ROLE_ID = 501542465623556116;
+    const dpp::snowflake AFK_ID = 402257227555143701;
 
     const dpp::snowflake JET_ID = 228299051517476864;
     /////////////////////////
