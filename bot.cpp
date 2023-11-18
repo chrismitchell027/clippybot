@@ -129,7 +129,7 @@ void Bot::HandleSoundDM(const dpp::message_create_t& event)
 
             event.msg.attachments[0].download([filename](const dpp::http_request_completion_t& req)
             {
-                std::fstream mp3(filename, std::fstream::out | std::fstream::binary);
+                std::fstream mp3(std::format("sounds/saved_sounds/{}", filename), std::fstream::out | std::fstream::binary);
                 
                 mp3.write(req.body.c_str(), req.body.size());
             }
@@ -175,7 +175,7 @@ void Bot::CmdPlay(const std::string& cmd, const dpp::parameter_list_t& param_lis
             cs.message_event.value().reply("URL required for $play");
             return;
         }
-        std::regex link("([A-Z0-9_]){11}", std::regex_constants::icase);
+        std::regex link("([A-Z0-9_-]){11}", std::regex_constants::icase);
         std::smatch match;
         if (!std::regex_search(param, match, link))
         {
