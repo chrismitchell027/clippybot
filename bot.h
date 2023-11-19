@@ -61,7 +61,11 @@ public:
             if (m_bNeedToSound && event.voice_client)
             {
                 m_bNeedToSound = false;
-                PlaySound(event.voice_client);
+
+                if (m_szFileName.find(".raw") == std::string::npos)//if sound is raw
+                    PlaySound(event.voice_client);
+                else
+                    PlayPCM(event.voice_client);
             }
         }
         );
@@ -71,7 +75,7 @@ public:
             if (event.state.user_id != me.id && event.state.channel_id != AFK_ID)
             {
                 dpp::voiceconn *v = event.from->get_voice(event.state.guild_id);
-                m_szFileName = "sounds/welcomeback.mp3";
+                m_szFileName = "sounds/welcomeback.raw";
                 dpp::guild *g = dpp::find_guild(event.state.guild_id);
                 if (m_UserToChannel.find(event.state.user_id) != m_UserToChannel.end())//user is found in map
                 {
@@ -80,7 +84,7 @@ public:
                         //in the same channel
                         if (v != nullptr && event.state.channel_id == v->channel_id)
                         {
-                            PlaySound(v->voiceclient);
+                            PlayPCM(v->voiceclient);
                         }
                         //not in the same channel
                         else if(v != nullptr)
@@ -104,7 +108,7 @@ public:
                         //in the same channel
                         if (v != nullptr && event.state.channel_id == v->channel_id)
                         {
-                            PlaySound(v->voiceclient);
+                            PlayPCM(v->voiceclient);
                         }
                         //not in the same channel
                         else if(v != nullptr)
@@ -160,6 +164,7 @@ public:
     }
 
     std::vector<uint8_t> ReadAudioData(const std::string&) const;
+    std::vector<uint8_t> ReadPCMData(const std::string&) const;
     void ReadSounds();
     void AddSound(std::string, dpp::snowflake);
     void ListSounds(dpp::command_source) const;
@@ -171,6 +176,7 @@ public:
     void CmdSounds(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void PlayYoutube(dpp::discord_voice_client*) const;
     void PlaySound(dpp::discord_voice_client*) const;
+    void PlayPCM(dpp::discord_voice_client*) const;
 
 private:
     /////////////////////

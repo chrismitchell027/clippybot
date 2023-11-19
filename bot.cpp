@@ -43,7 +43,23 @@ std::vector<uint8_t> Bot::ReadAudioData(const std::string& file_dir) const
     delete[] buffer;
     mpg123_close(mh);
     mpg123_delete(mh);
-	return pcmdata;
+    return pcmdata;
+}
+
+std::vector<uint8_t> Bot::ReadPCMData(const std::string& file_dir) const
+{
+    std::fstream pcm_file = std::fstream(file_dir, std::fstream::in | std::fstream::binary);
+    std::vector<uint8_t> pcm_data;
+    uint8_t buf;
+    auto size = std::filesystem::file_size(file_dir);
+
+    for (uintmax_t i = 0; i < size; i++)
+    {
+        pcm_file.read((char*)&buf, 1);
+        pcm_data.push_back(buf);
+    }
+
+    return pcm_data;
 }
 
 void Bot::ReadSounds()
@@ -163,6 +179,14 @@ void Bot::PlaySound(dpp::discord_voice_client *vc) const
 
     if (vc)
         vc->send_audio_raw((uint16_t*)sound_data.data(), sound_data.size());
+}
+
+void Bot::PlayPCM(dpp::discord_voice_client *vc) const
+{
+    auto pcm_data = ReadPCMData(m_szFileName);
+
+    if (vc)
+        vc->send_audio_raw((uint16_t*)pcm_data.data(), pcm_data.size());
 }
 
 void Bot::CmdPlay(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
