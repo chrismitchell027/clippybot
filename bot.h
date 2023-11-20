@@ -40,7 +40,6 @@ public:
         //lambda function for on_ready event
         on_ready([&cmd_handler, this](const dpp::ready_t& event)
         {
-            std::vector<std::pair<std::string, dpp::param_info>> play_args;
             cmd_handler.add_command("clippy", {}, std::bind(&Bot::CmdClippy, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Clippy...");
             cmd_handler.add_command("play", { {"URL", dpp::param_info(dpp::pt_string, false, "play")} }, std::bind(&Bot::CmdPlay, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Play stuff");
             cmd_handler.add_command("stop", {}, std::bind(&Bot::CmdStop, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Stop playing audio");
@@ -62,7 +61,7 @@ public:
             {
                 m_bNeedToSound = false;
 
-                if (m_szFileName.find(".raw") == std::string::npos)//if sound is raw
+                if (m_szFileName.find(".raw") == std::string::npos)//if sound isnt raw
                     PlaySound(event.voice_client);
                 else
                     PlayPCM(event.voice_client);

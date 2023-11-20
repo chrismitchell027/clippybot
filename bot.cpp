@@ -79,7 +79,7 @@ void Bot::AddSound(std::string sound, dpp::snowflake author)
     nlohmann::json soundjson = nlohmann::ordered_json::parse(soundfile);
     soundfile.close();
 
-    soundjson[sound]["type"] = "mp3";
+    soundjson[sound]["type"] = "raw";
     soundjson[sound]["author"] = (uint64_t)author;
 
     std::fstream soundfile_write("added_sounds.json", std::fstream::out | std::fstream::trunc);
@@ -132,6 +132,20 @@ void Bot::HandleSoundDM(const dpp::message_create_t& event)
                 return;
             }
 
+            if (filename.length() > 29)
+            {
+                event.reply("Filename too long, must be <= 25 characters");
+                return;
+            }
+
+            std::regex file("([A-Z0-9_]){1,25}.mp3", std::regex_constants::icase);
+            std::smatch match;
+            if (!std::regex_search(filename, match, file) || match.str() != filename)
+            {
+                event.reply("Invalid filename");
+                return;
+            }
+
             if (file_exists)
             {
                 event.reply(std::format("Sound {} already exists", filename));
@@ -148,6 +162,9 @@ void Bot::HandleSoundDM(const dpp::message_create_t& event)
                 std::fstream mp3(std::format("sounds/saved_sounds/{}", filename), std::fstream::out | std::fstream::binary);
                 
                 mp3.write(req.body.c_str(), req.body.size());
+                mp3.close();
+                system(std::format("ffmpeg -i sounds/saved_sounds/{0}.mp3 -f s16le -acodec pcm_s16le -ar 48000 -ac 2 sounds/saved_sounds/{0}.raw", filename.substr(0, filename.find(".mp3"))).c_str());
+                std::filesystem::remove(std::format("sounds/saved_sounds/{}", filename));
             }
             );
         }
@@ -293,7 +310,7 @@ void Bot::CmdSounds(const std::string& cmd, const dpp::parameter_list_t& param_l
 
                 //in the same channel
                 if (v != nullptr && g->voice_members[cs.issuer.id].channel_id == v->channel_id)
-                    PlaySound(v->voiceclient);
+                    PlayPCM(v->voiceclient);
                 //not in the same channel
                 else if(v != nullptr)
                 {
