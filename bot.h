@@ -89,7 +89,13 @@ public:
                         else if(v != nullptr)
                         {
                             event.from->disconnect_voice(event.state.guild_id);
-                            g->connect_member_voice(event.state.user_id, false, true);
+                            //g->connect_member_voice(event.state.user_id, false, true);
+                            start_timer([g, event, this](dpp::timer t)
+                            {
+                                g->connect_member_voice(event.state.user_id, false, true);
+                                stop_timer(t);
+                            }
+                            , 1);
                             m_bNeedToSound = true;
                         }
                         //not connected at all
@@ -171,7 +177,7 @@ public:
     void CmdClippy(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdPlay(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdStop(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
-    void CmdSummon(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
+    void CmdSummon(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdSounds(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void PlayYoutube(dpp::discord_voice_client*) const;
     void PlaySound(dpp::discord_voice_client*) const;

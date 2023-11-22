@@ -238,8 +238,13 @@ void Bot::CmdPlay(const std::string& cmd, const dpp::parameter_list_t& param_lis
         else if(v != nullptr)
         {
             cs.message_event.value().from->disconnect_voice(cs.guild_id);
-            //m_snoJoinUser = cs.issuer.id;
-            g->connect_member_voice(cs.issuer.id, false, true);
+            //g->connect_member_voice(cs.issuer.id, false, true);
+            start_timer([g, cs, this](dpp::timer t)
+            {
+                g->connect_member_voice(cs.issuer.id, false, true);
+                stop_timer(t);
+            }
+            , 1);
             m_bNeedToPlay = true;
         }
         //not connected at all
@@ -261,7 +266,7 @@ void Bot::CmdStop(const std::string& cmd, const dpp::parameter_list_t& param_lis
     }
 }
 
-void Bot::CmdSummon(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
+void Bot::CmdSummon(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     BOT_SPAM_CHECK
     {
@@ -271,7 +276,13 @@ void Bot::CmdSummon(const std::string& cmd, const dpp::parameter_list_t& param_l
         if (v != nullptr && g->voice_members[cs.issuer.id].channel_id != v->channel_id)
         {
             cs.message_event.value().from->disconnect_voice(cs.guild_id);
-            g->connect_member_voice(cs.issuer.id, false, true);
+            //g->connect_member_voice(cs.issuer.id, false, true);
+            start_timer([g, cs, this](dpp::timer t)
+            {
+                g->connect_member_voice(cs.issuer.id, false, true);
+                stop_timer(t);
+            }
+            , 1);
         }
         else if (v == nullptr)
             g->connect_member_voice(cs.issuer.id, false, true);
@@ -315,7 +326,13 @@ void Bot::CmdSounds(const std::string& cmd, const dpp::parameter_list_t& param_l
                 else if(v != nullptr)
                 {
                     cs.message_event.value().from->disconnect_voice(cs.guild_id);
-                    g->connect_member_voice(cs.issuer.id, false, true);
+                    //g->connect_member_voice(cs.issuer.id, false, true);
+                    start_timer([g, cs, this](dpp::timer t)
+                    {
+                        g->connect_member_voice(cs.issuer.id, false, true);
+                        stop_timer(t);
+                    }
+                    , 1);
                     m_bNeedToSound = true;
                 }
                 //not connected at all
