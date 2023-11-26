@@ -95,7 +95,7 @@ public:
                                 g->connect_member_voice(event.state.user_id, false, true);
                                 stop_timer(t);
                             }
-                            , 1);
+                            , 2);
                             m_bNeedToSound = true;
                         }
                         //not connected at all

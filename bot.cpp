@@ -138,7 +138,7 @@ void Bot::HandleSoundDM(const dpp::message_create_t& event)
                 return;
             }
 
-            std::regex file("([A-Z0-9_]){1,25}.mp3", std::regex_constants::icase);
+            std::regex file("([A-Z0-9_]{1,25}\\.mp3)", std::regex_constants::icase);
             std::smatch match;
             if (!std::regex_search(filename, match, file) || match.str() != filename)
             {
@@ -239,12 +239,13 @@ void Bot::CmdPlay(const std::string& cmd, const dpp::parameter_list_t& param_lis
         {
             cs.message_event.value().from->disconnect_voice(cs.guild_id);
             //g->connect_member_voice(cs.issuer.id, false, true);
+
             start_timer([g, cs, this](dpp::timer t)
             {
                 g->connect_member_voice(cs.issuer.id, false, true);
                 stop_timer(t);
             }
-            , 1);
+            , 2);
             m_bNeedToPlay = true;
         }
         //not connected at all
@@ -282,7 +283,7 @@ void Bot::CmdSummon(const std::string& cmd, const dpp::parameter_list_t& param_l
                 g->connect_member_voice(cs.issuer.id, false, true);
                 stop_timer(t);
             }
-            , 1);
+            , 2);
         }
         else if (v == nullptr)
             g->connect_member_voice(cs.issuer.id, false, true);
@@ -332,7 +333,7 @@ void Bot::CmdSounds(const std::string& cmd, const dpp::parameter_list_t& param_l
                         g->connect_member_voice(cs.issuer.id, false, true);
                         stop_timer(t);
                     }
-                    , 1);
+                    , 2);
                     m_bNeedToSound = true;
                 }
                 //not connected at all
