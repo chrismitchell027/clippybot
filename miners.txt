@@ -1,4 +1,4 @@
-Sneaky Slave,15,0.1
+Sneaky Bebber,15,0.1
 Quoin Counter,100,0.5
 Beb Miner,500,4
 Folgies Factory,3000,10
