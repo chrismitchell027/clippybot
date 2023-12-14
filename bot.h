@@ -78,7 +78,7 @@ public:
                 dpp::guild *g = dpp::find_guild(event.state.guild_id);
                 if (m_UserToChannel.find(event.state.user_id) != m_UserToChannel.end())//user is found in map
                 {
-                    if (m_UserToChannel[event.state.user_id].empty() && !event.state.channel_id.empty())//if user left previously and is now in channel
+                    if ((m_UserToChannel[event.state.user_id].empty() && !event.state.channel_id.empty()) || (m_UserToChannel[event.state.user_id] == AFK_ID && !event.state.channel_id.empty))//if user left previously and is now in channel || user left afk and rejoined
                     {
                         //in the same channel
                         if (v != nullptr && event.state.channel_id == v->channel_id)

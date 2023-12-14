@@ -138,7 +138,7 @@ void Bot::HandleSoundDM(const dpp::message_create_t& event)
                 return;
             }
 
-            std::regex file("([A-Z0-9_]{1,25}\\.mp3)", std::regex_constants::icase);
+            std::regex file("([a-z0-9_]{1,25}\\.mp3)");
             std::smatch match;
             if (!std::regex_search(filename, match, file) || match.str() != filename)
             {
