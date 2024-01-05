@@ -189,7 +189,6 @@ public:
     void PlayYoutube(dpp::discord_voice_client*) const;
     void PlaySound(dpp::discord_voice_client*) const;
     void PlayPCM(dpp::discord_voice_client*) const;
-    void SoundBoardButton(const std::string& soundName, dpp::command_source cs);
 
 private:
     /////////////////////

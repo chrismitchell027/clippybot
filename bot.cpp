@@ -171,50 +171,6 @@ void Bot::ListSounds(dpp::command_source cs) const
     }
 }
 
-void Bot::SoundBoardButton(const std::string& soundName, dpp::command_source cs)
-{
-    for (auto s : sounds)
-        if (s.first == soundName)
-            {
-                m_szFileName = std::format("sounds/saved_sounds/{}.{}", s.first, s.second);
-                if (!std::filesystem::exists(m_szFileName))
-                {
-                    cs.message_event.value().reply(std::format("Error: {}.{} doesn't exist", s.first, s.second));
-                    return;
-                }
-
-                dpp::guild *g = dpp::find_guild(cs.guild_id);
-                dpp::voiceconn *v = cs.message_event.value().from->get_voice(cs.guild_id);
-
-                //in the same channel
-                if (v != nullptr && g->voice_members[cs.issuer.id].channel_id == v->channel_id)
-                    PlayPCM(v->voiceclient);
-                //not in the same channel
-                else if(v != nullptr)
-                {
-                    cs.message_event.value().from->disconnect_voice(cs.guild_id);
-                    //g->connect_member_voice(cs.issuer.id, false, true);
-                    start_timer([g, cs, this](dpp::timer t)
-                    {
-                        g->connect_member_voice(cs.issuer.id, false, true);
-                        stop_timer(t);
-                    }
-                    , 2);
-                    m_bNeedToSound = true;
-                }
-                //not connected at all
-                else
-                {
-                    g->connect_member_voice(cs.issuer.id, false, true);
-                    m_bNeedToSound = true;
-                }
-
-                return;
-            }
-    
-    cs.message_event.value().reply(std::format("Sound {} doesn't exist", soundName));
-}
-
 
 void Bot::HandleSoundDM(const dpp::message_create_t& event)
 {
