@@ -89,70 +89,89 @@ void Bot::AddSound(std::string sound, dpp::snowflake author)
 // Define a function ListSounds that takes a command_source cs as a parameter
 void Bot::ListSounds(dpp::command_source cs) const
 {
-    // NOTES:
-    // - currently the buttons are bound to the user that requested the sounds list
-    // - the buttons function needs scope to the user that clicked the button, not the user that called this function
-    
-
     // Initialize variables for pagination
     int sounds_page_num = 1;
     int sounds_added_count = 0;
 
-    // Create an embed for displaying sounds information
-    dpp::embed sounds_embed;
-    sounds_embed.title = "Sound Board";
-    sounds_embed.color = 0xf1d904;
+    // Create a message for the first page
+    dpp::message msg(cs.channel_id, std::format("Sounds Page {}", sounds_page_num));
 
     // Initialize an array to store rows of buttons
-    std::vector<std::vector<dpp::component_button>> button_rows;
+    std::vector<std::vector<dpp::component>> button_rows;
 
     // Iterate through the sounds map
     for (auto s : sounds)
     {
         // Create a button for each sound and add it to the current row
-        dpp::component_button button;
-        button.label = s.first;
-        button.custom_id = std::format("sound_button_{}", s.first);
-        button.style = dpp::component_button_style::PRIMARY;
-        button.callback = std::bind(&Bot::SoundBoardButton, this, s.first, cs);
+        dpp::component button;
+        button.set_type(dpp::cot_button);
+        button.set_label(s.first);
+        button.set_id(std::format("sound_button_{}", s.first));
+        button.set_style(dpp::cos_primary);
 
         // Add the button to the current row
         button_rows[sounds_added_count / 3].push_back(button);
-
         sounds_added_count++;
-
-        // Check if 9 sounds have been added (3x3 grid)
+        
+        // If 3x3 grid is filled, create message and send it
         if (sounds_added_count == 9)
         {
-            // Add the rows of buttons to the embed
+            // fill out each row
             for (const auto &row : button_rows)
-                sounds_embed.add_component(row);
-
-            // Send the current embed with a 3x3 grid of buttons as a message
-            cs.message_event.value().send(dpp::message(cs.channel_id, sounds_embed));
-
-            // Increment the page number and reset variables for the next page
-            sounds_page_num++;
-            sounds_embed = dpp::embed();
-            sounds_embed.title = "Sound Board";
-            sounds_embed.color = 0xf1d904;
-            button_rows.clear();
-            sounds_added_count = 0;
+            {
+                // Add an action row with 3 buttons to the msg
+                msg.add_component(
+                    dpp::component().add_component(
+                        row[0]
+                    )
+                    .add_component(
+                        row[1]
+                    )
+                    .add_component(
+                        row[2]
+                    )
+                );
+            }
+            // send the message
+            cs.message_event.value().send(msg);
+            // reset the message
+            msg = dpp::message(cs.channel_id, std::format("Sounds Page {}", sounds_page_num));
         }
     }
 
     // Check if there are remaining sounds to be sent
     if (sounds_added_count > 0)
     {
-        // Add the remaining rows of buttons to the ebed
-        for (const auto &row : button_rows)
-            sounds_embed.add_component(row);
-        
-        cs.message_event.value().send(dpp::message(cs.channel_id, sounds_embed));
+        // Calculate how many sounds remain
+        int sounds_remaining_num = sounds_added_count % 9;
+        // Create an action row
+        dpp::component action_row;
+        int curr_row_count = 0;
+        int curr_button_count = 0;
+        for (int i = 0; i < sounds_remaining_num; i++, curr_button_count++)
+        {
+            action_row.add_component(button_rows[curr_row_count][curr_button_count]);
+            // If the row is full, add it to the message and create a new row
+            if (curr_button_count == 2)
+            {
+                msg.add_component(action_row);
+                action_row = dpp::component();
+                curr_row_count++;
+                curr_button_count = 0;
+            }
+        }
+        // Check if there are buttons in the last row
+        if (curr_button_count > 0)
+        {
+            msg.add_component(action_row);
+        }
+
+        // Send the msg
+        cs.message_event.value().send(msg);
     }
 }
 
-void Bot::SoundBoardButton(const std::string& soundName, dpp::command_source cs)
+void Bot::SoundBoardButton(const std::string& soundName, dpp::command_source cs) const
 {
     for (auto s : sounds)
         if (s.first == soundName)

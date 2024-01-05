@@ -164,6 +164,13 @@ public:
         }
         );
 
+        on_button_click([this](const dpp::button_click_t& event)
+        {
+            // Placeholder logic for the button clicks
+            event.reply(dpp::message(std::format("Button ID: [{}]", event.custom_id)).set_flags(dpp::m_ephemeral));
+        }
+        );
+
         //wait so vars don't go out of scope
         start(dpp::st_wait);
     }
@@ -182,7 +189,7 @@ public:
     void PlayYoutube(dpp::discord_voice_client*) const;
     void PlaySound(dpp::discord_voice_client*) const;
     void PlayPCM(dpp::discord_voice_client*) const;
-    void SoundBoardButton(const std::string& soundName, dpp::command_source cs);
+    void SoundBoardButton(const std::string& soundName, dpp::command_source cs) const
 
 private:
     /////////////////////
