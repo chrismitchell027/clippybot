@@ -86,32 +86,116 @@ void Bot::AddSound(std::string sound, dpp::snowflake author)
     soundfile_write << soundjson.dump(4);
 }
 
+// Define a function ListSounds that takes a command_source cs as a parameter
 void Bot::ListSounds(dpp::command_source cs) const
 {
+    // NOTES:
+    // - currently the buttons are bound to the user that requested the sounds list
+    // - the buttons function needs scope to the user that clicked the button, not the user that called this function
+    
+
+    // Initialize variables for pagination
     int sounds_page_num = 1;
     int sounds_added_count = 0;
-    dpp::embed sounds_embed;
-    sounds_embed.title = std::format("Sounds Page {}", sounds_page_num);
-    sounds_embed.color = 0x00DAFF;
 
+    // Create an embed for displaying sounds information
+    dpp::embed sounds_embed;
+    sounds_embed.title = "Sound Board";
+    sounds_embed.color = 0xf1d904;
+
+    // Initialize an array to store rows of buttons
+    std::vector<std::vector<dpp::component_button>> button_rows;
+
+    // Iterate through the sounds map
     for (auto s : sounds)
     {
-        sounds_embed.add_field(s.first, "", true);
+        // Create a button for each sound and add it to the current row
+        dpp::component_button button;
+        button.label = s.first;
+        button.custom_id = std::format("sound_button_{}", s.first);
+        button.style = dpp::component_button_style::PRIMARY;
+        button.callback = std::bind(&Bot::SoundBoardButton, this, s.first, cs);
+
+        // Add the button to the current row
+        button_rows[sounds_added_count / 3].push_back(button);
+
         sounds_added_count++;
-        if (sounds_added_count == 25)
+
+        // Check if 9 sounds have been added (3x3 grid)
+        if (sounds_added_count == 9)
         {
+            // Add the rows of buttons to the embed
+            for (const auto &row : button_rows)
+                sounds_embed.add_component(row);
+
+            // Send the current embed with a 3x3 grid of buttons as a message
             cs.message_event.value().send(dpp::message(cs.channel_id, sounds_embed));
+
+            // Increment the page number and reset variables for the next page
             sounds_page_num++;
             sounds_embed = dpp::embed();
-            sounds_embed.title = std::format("Sounds Page {}", sounds_page_num);
-            sounds_embed.color = 0x00DAFF;
+            sounds_embed.title = "Sound Board";
+            sounds_embed.color = 0xf1d904;
+            button_rows.clear();
             sounds_added_count = 0;
         }
     }
 
+    // Check if there are remaining sounds to be sent
     if (sounds_added_count > 0)
+    {
+        // Add the remaining rows of buttons to the ebed
+        for (const auto &row : button_rows)
+            sounds_embed.add_component(row);
+        
         cs.message_event.value().send(dpp::message(cs.channel_id, sounds_embed));
+    }
 }
+
+void Bot::SoundBoardButton(const std::string& soundName, dpp::command_source cs) const
+{
+    for (auto s : sounds)
+        if (s.first == soundName)
+            {
+                m_szFileName = std::format("sounds/saved_sounds/{}.{}", s.first, s.second);
+                if (!std::filesystem::exists(m_szFileName))
+                {
+                    cs.message_event.value().reply(std::format("Error: {}.{} doesn't exist", s.first, s.second));
+                    return;
+                }
+
+                dpp::guild *g = dpp::find_guild(cs.guild_id);
+                dpp::voiceconn *v = cs.message_event.value().from->get_voice(cs.guild_id);
+
+                //in the same channel
+                if (v != nullptr && g->voice_members[cs.issuer.id].channel_id == v->channel_id)
+                    PlayPCM(v->voiceclient);
+                //not in the same channel
+                else if(v != nullptr)
+                {
+                    cs.message_event.value().from->disconnect_voice(cs.guild_id);
+                    //g->connect_member_voice(cs.issuer.id, false, true);
+                    start_timer([g, cs, this](dpp::timer t)
+                    {
+                        g->connect_member_voice(cs.issuer.id, false, true);
+                        stop_timer(t);
+                    }
+                    , 2);
+                    m_bNeedToSound = true;
+                }
+                //not connected at all
+                else
+                {
+                    g->connect_member_voice(cs.issuer.id, false, true);
+                    m_bNeedToSound = true;
+                }
+
+                return;
+            }
+    
+    cs.message_event.value().reply(std::format("Sound {} doesn't exist", soundName));
+}
+
 
 void Bot::HandleSoundDM(const dpp::message_create_t& event)
 {
