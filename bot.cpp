@@ -171,7 +171,7 @@ void Bot::ListSounds(dpp::command_source cs) const
     }
 }
 
-void Bot::SoundBoardButton(const std::string& soundName, dpp::command_source cs) const
+void Bot::SoundBoardButton(const std::string& soundName, dpp::command_source cs)
 {
     for (auto s : sounds)
         if (s.first == soundName)
