@@ -45,6 +45,7 @@ public:
             cmd_handler.add_command("stop", {}, std::bind(&Bot::CmdStop, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Stop playing audio");
             cmd_handler.add_command("summon", {}, std::bind(&Bot::CmdSummon, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Summon the bot");
             cmd_handler.add_command("sounds", { {"sound", dpp::param_info(dpp::pt_string, false, "sound name")} }, std::bind(&Bot::CmdSounds, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Play sounds");
+            cmd_handler.add_command("delete", { {"sound", dpp::param_info(dpp::pt_string, false, "sound name")} }, std::bind(&Bot::CmdDelete, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Delete sounds");
             //cmd_handler.register_commands(); not needed for non slash commands
         }
         );
@@ -172,6 +173,7 @@ public:
     std::vector<uint8_t> ReadPCMData(const std::string&) const;
     void ReadSounds();
     void AddSound(std::string, dpp::snowflake);
+    void RemoveSound(std::string);
     void ListSounds(dpp::command_source) const;
     void HandleSoundDM(const dpp::message_create_t&);
     void CmdClippy(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
@@ -179,6 +181,7 @@ public:
     void CmdStop(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
     void CmdSummon(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdSounds(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
+    void CmdDelete(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void PlayYoutube(dpp::discord_voice_client*) const;
     void PlaySound(dpp::discord_voice_client*) const;
     void PlayPCM(dpp::discord_voice_client*) const;
@@ -216,6 +219,7 @@ private:
     const dpp::snowflake BOT_SPAM_ID = 884995892359331850;
     const dpp::snowflake BEAKY_ROLE_ID = 501542465623556116;
     const dpp::snowflake AFK_ID = 402257227555143701;
+    const dpp::snowflake CLIPPY_ADMIN_ID = 1146979115728113785;
 
     const dpp::snowflake JET_ID = 228299051517476864;
     /////////////////////////

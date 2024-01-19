@@ -1,6 +1,7 @@
 #include "bot.h"
 
 #define BOT_SPAM_CHECK if (cs.channel_id == BOT_SPAM_ID)
+#define CLIPPY_ADMIN_CHECK if (cs.channel_id == CLIPPY_ADMIN_ID)
 
 /**
  * Reads audio data and puts it into vector,
@@ -81,6 +82,18 @@ void Bot::AddSound(std::string sound, dpp::snowflake author)
 
     soundjson[sound]["type"] = "raw";
     soundjson[sound]["author"] = (uint64_t)author;
+
+    std::fstream soundfile_write("added_sounds.json", std::fstream::out | std::fstream::trunc);
+    soundfile_write << soundjson.dump(4);
+}
+
+void Bot::RemoveSound(std::string sound)
+{
+    std::ifstream soundfile("added_sounds.json");
+    nlohmann::json soundjson = nlohmann::ordered_json::parse(soundfile);
+    soundfile.close();
+    
+    soundjson.erase(sound);
 
     std::fstream soundfile_write("added_sounds.json", std::fstream::out | std::fstream::trunc);
     soundfile_write << soundjson.dump(4);
@@ -346,6 +359,39 @@ void Bot::CmdSounds(const std::string& cmd, const dpp::parameter_list_t& param_l
                 return;
             }
         
+        cs.message_event.value().reply(std::format("Sound {} doesn't exist", param));
+    }
+}
+
+void Bot::CmdDelete(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+{
+    CLIPPY_ADMIN_CHECK
+    {
+        std::string param = std::get<std::string>(param_list[0].second);
+        if (param.empty())
+        {
+            cs.message_event.value().reply("Sound name required");
+            return;
+        }
+
+        for (auto s : sounds)
+            if (s.first == param)
+            {
+                m_szFileName = std::format("sounds/saved_sounds/{}.{}", s.first, s.second);
+                if (!std::filesystem::exists(m_szFileName))
+                {
+                    cs.message_event.value().reply(std::format("Error: {}.{} doesn't exist", s.first, s.second));
+                    return;
+                }
+
+                RemoveSound(s.first);
+                ReadSounds();
+                std::filesystem::remove(m_szFileName);
+
+                cs.message_event.value().reply(std::format("Sound {} deleted", s.first));
+
+                return;
+            }
         cs.message_event.value().reply(std::format("Sound {} doesn't exist", param));
     }
 }
