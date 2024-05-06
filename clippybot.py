@@ -807,7 +807,4 @@ async def sounds_error(ctx, error):
 # ------------------------------------------------------------------------
 
 # MAIN BOT
-client.run('OTQ2ODM2Mzg4MTkwNDk4ODU2.YhkgGg.szcUNFly3moCylBdaoijIiojdic')
-
-# TEST BOT
-#client.run('OTY4NTc0MDY2MDc0MjEwMzE0.Ymg05A.hfW9WDiZmNV_uoFhFiXChpT0ewU')
+client.run('TOKEN GOES HERE')
