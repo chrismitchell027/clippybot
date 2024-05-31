@@ -270,6 +270,57 @@ void Bot::CmdPlay(const std::string& cmd, const dpp::parameter_list_t& param_lis
     }
 }
 
+void Bot::CmdSearch(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+{
+    BOT_SPAM_CHECK
+    {
+        std::string param = std::get<std::string>(param_list[0].second);
+        if (param.empty())
+        {
+            cs.message_event.value().reply("Search query required for $search");
+            return;
+        }
+        std::regex link("([A-Z0-9_\\s]){1,30}", std::regex_constants::icase);
+        std::smatch match;
+        if (!std::regex_search(param, match, link))
+        {
+            cs.message_event.value().reply("Invalid search");
+            return;
+        }
+
+        dpp::guild *g = dpp::find_guild(cs.guild_id);
+        dpp::voiceconn *v = cs.message_event.value().from->get_voice(cs.guild_id);
+
+        system(std::format("yt-dlp -x --audio-format mp3 \"ytsearch:{}\" -o yt.mp3", match.str()).c_str());
+
+        //in the same channel
+        if (v != nullptr && g->voice_members[cs.issuer.id].channel_id == v->channel_id)
+        {
+            PlayYoutube(v->voiceclient);
+        }
+        //not in the same channel
+        else if(v != nullptr)
+        {
+            cs.message_event.value().from->disconnect_voice(cs.guild_id);
+            //g->connect_member_voice(cs.issuer.id, false, true);
+
+            start_timer([g, cs, this](dpp::timer t)
+            {
+                g->connect_member_voice(cs.issuer.id, false, true);
+                stop_timer(t);
+            }
+            , 2);
+            m_bNeedToPlay = true;
+        }
+        //not connected at all
+        else
+        {
+            g->connect_member_voice(cs.issuer.id, false, true);
+            m_bNeedToPlay = true;
+        }
+    }
+}
+
 void Bot::CmdStop(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
 {
     BOT_SPAM_CHECK
