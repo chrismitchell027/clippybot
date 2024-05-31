@@ -15,7 +15,7 @@ extern std::vector<std::pair<std::string, std::string>> sounds;
 class Bot : public dpp::cluster
 {
 public:
-    Bot(uint32_t intents) : dpp::cluster("OTQ2ODM2Mzg4MTkwNDk4ODU2.YhkgGg.szcUNFly3moCylBdaoijIiojdic", dpp::intents::i_default_intents | intents), m_rDistribution(0, 10)
+    Bot(uint32_t intents) : dpp::cluster("", dpp::intents::i_default_intents | intents), m_rDistribution(0, 10)
     {
         //set up miners
         miners = std::vector<std::pair<double,double>>();
@@ -46,6 +46,7 @@ public:
             cmd_handler.add_command("summon", {}, std::bind(&Bot::CmdSummon, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Summon the bot");
             cmd_handler.add_command("sounds", { {"sound", dpp::param_info(dpp::pt_string, false, "sound name")} }, std::bind(&Bot::CmdSounds, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Play sounds");
             cmd_handler.add_command("delete", { {"sound", dpp::param_info(dpp::pt_string, false, "sound name")} }, std::bind(&Bot::CmdDelete, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Delete sounds");
+            cmd_handler.add_command("search", { {"search", dpp::param_info(dpp::pt_string, false, "search query")} }, std::bind(&Bot::CmdSearch, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Search video");
             //cmd_handler.register_commands(); not needed for non slash commands
         }
         );
@@ -182,6 +183,7 @@ public:
     void CmdSummon(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdSounds(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdDelete(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
+    void CmdSearch(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void PlayYoutube(dpp::discord_voice_client*) const;
     void PlaySound(dpp::discord_voice_client*) const;
     void PlayPCM(dpp::discord_voice_client*) const;
