@@ -1,6 +1,6 @@
 #include "player.h"
 
-dpp::snowflake Player::GetUserID() const
+int64_t Player::GetUserID() const
 {
     return m_snoUserID; 
 }
@@ -18,7 +18,7 @@ void Player::SetUsername(std::string new_username)
 void Player::ResetIncome()
 {
     double income = 0;
-    for (auto i : m_vInventory)
+    for (int i = 0; i < m_vInventory.size(); i++)
     {
         float minerProduction = miners[i].second;
         int quantityOwned = m_vInventory[i];
@@ -56,22 +56,23 @@ bool Player::BuyItem(int itemID)
 {
     double price = GetPrice(itemID);
     AddBalance(-price);
-    m_vInventory[itemID] += 1;
+    m_vInventory[itemID]++;
     m_dIncome += miners[itemID].second;
-    if (m_dBalance >= price)
-    {
-        AddBalance(-price);
-        m_vInventory[itemID] += 1;
-        m_dIncome += miners[itemID].second;
-        return true;
-    }
-    return false;
+    return true;
 }
 
-double Player::GetPrice(int itemID) const
+/* double Player::GetPrice(int itemID) const
 {
     double baseCost = miners[itemID].first;
-    int numOwned = m_vInventory[itemID];
+    int numOwned = GetInventoryItem(itemID);
+    double price = baseCost * pow(1.12, numOwned);
+    return round(price * 10) / 10;
+} */
+
+double Player::GetPrice(int itemID, int numOwned) const
+{
+    double baseCost = miners[itemID].first;
+    numOwned = (numOwned == -1) ? GetInventoryItem(itemID) : numOwned;
     double price = baseCost * pow(1.12, numOwned);
     return round(price * 10) / 10;
 }
@@ -95,4 +96,34 @@ double Player::GetIncome() const
 {
     double income = m_dIncome;
     return round(income * 100) / 100;
+}
+
+int64_t Player::GetCooldown() const
+{
+    return m_iCooldown;
+}
+
+void Player::SetCooldown(int64_t c)
+{
+    m_iCooldown = c;
+}
+
+int Player::GetCfWins() const
+{
+    return m_iCfWins;
+}
+
+int Player::GetCfLosses() const
+{
+    return m_iCfLosses;
+}
+
+void Player::AddCfWin()
+{
+    m_iCfWins++;
+}
+
+void Player::AddCfLoss()
+{
+    m_iCfLosses++;
 }
