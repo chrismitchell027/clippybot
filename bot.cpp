@@ -946,6 +946,7 @@ void Bot::CmdRichest(const std::string& cmd, const dpp::parameter_list_t& param_
         for (const auto& p : richestPlayers)
         {
             i++;
+            if (i == 6) break;
             richestEmbed.add_field(
             std::format("{}", i), 
             std::format("{} has {} bebbies", p.GetUsername(), ThousandsFormat(p.GetBalance())),
