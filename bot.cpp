@@ -684,7 +684,7 @@ void Bot::CmdIncome(const std::string& cmd, const dpp::parameter_list_t& param_l
         {
             if (p.GetUserID() == cs.issuer.id)
             {
-                cs.message_event.value().reply(std::format("{} is current mining {} bebbies per second", p.GetUsername(), ThousandsFormat(p.GetIncome())));
+                cs.message_event.value().reply(std::format("{} is currently mining {} bebbies per second", p.GetUsername(), ThousandsFormat(p.GetIncome())));
                 return;
             }
         }
