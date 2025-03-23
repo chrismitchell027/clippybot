@@ -22,12 +22,12 @@ extern std::vector<std::pair<std::string, std::string>> sounds;
 class Bot : public dpp::cluster
 {
 public:
-    Bot(uint32_t intents) : dpp::cluster("KEY", dpp::intents::i_default_intents | intents), m_rDistribution(0, 10)
+    Bot(uint32_t intents) : dpp::cluster("", dpp::intents::i_default_intents | intents), m_rDistribution(0, 10)
     {
         conn = pqxx::connection("dbname=discord user=discord");
         conn.prepare("insert_user", "INSERT INTO users VALUES ($1, $2, $3)");
-        conn.prepare("get_all_users", "SELECT id, balance, inventory, cfwins, cflosses FROM USERS");
-        conn.prepare("update_user", "UPDATE users SET balance = $1, inventory = $2, cfwins = $3, cflosses = $4 WHERE id = $5");
+        conn.prepare("get_all_users", "SELECT id, balance, inventory, cfwins, cflosses, cfprofit FROM USERS");
+        conn.prepare("update_user", "UPDATE users SET balance = $1, inventory = $2, cfwins = $3, cflosses = $4, cfprofit = $5 WHERE id = $6");
         //set up miners
         miners = std::vector<std::pair<double,double>>();
         std::ifstream minerfile("miners.json");

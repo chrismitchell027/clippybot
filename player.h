@@ -10,7 +10,7 @@ extern std::vector<std::pair<double, double>> miners;
 class Player
 {
 public:
-    Player(int64_t userID, double bal, std::string username, std::vector<int> inventory = {}, int cfWins = 0, int cfLosses = 0) : m_snoUserID(userID), m_dBalance(bal), m_szUsername(username), m_iCfWins(cfWins), m_iCfLosses(cfLosses)
+    Player(int64_t userID, double bal, std::string username, std::vector<int> inventory = {}, int cfWins = 0, int cfLosses = 0, double cfProfit = 0.0) : m_snoUserID(userID), m_dBalance(bal), m_szUsername(username), m_iCfWins(cfWins), m_iCfLosses(cfLosses), m_dCfProfit(cfProfit)
     {
         if (inventory.empty())
             for (auto x : miners)
@@ -43,6 +43,8 @@ public:
     int GetCfLosses() const;
     void AddCfWin();
     void AddCfLoss();
+    double GetCfProfit() const;
+    void AddCfProfit(double p);
 
     friend std::ostream& operator<<(std::ostream& os, const Player& player)
     {
@@ -65,6 +67,7 @@ private:
     int64_t m_iCooldown = 0;
     int m_iCfWins = 0;
     int m_iCfLosses = 0;
+    double m_dCfProfit = 0.0;
 };
 
 #endif

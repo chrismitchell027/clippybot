@@ -127,3 +127,13 @@ void Player::AddCfLoss()
 {
     m_iCfLosses++;
 }
+
+double Player::GetCfProfit() const
+{
+    return m_dCfProfit;
+}
+
+void Player::AddCfProfit(double p)
+{
+    m_dCfProfit += p;
+}

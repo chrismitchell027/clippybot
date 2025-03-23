@@ -771,7 +771,7 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
             {
                 if (p.GetUserID() == cs.issuer.id)
                 {
-                    cs.message_event.value().reply(std::format("Coinflip stats for {}: {} wins and {} losses, {:.2f}% win rate", p.GetUsername(), p.GetCfWins(), p.GetCfLosses(),  (double)(p.GetCfWins() * 100) / (p.GetCfWins() + p.GetCfLosses())));
+                    cs.message_event.value().reply(std::format("Coinflip stats for {}: {} wins and {} losses, {:.2f}% win rate, {} bebbies profit", p.GetUsername(), p.GetCfWins(), p.GetCfLosses(),  (double)(p.GetCfWins() * 100) / (p.GetCfWins() + p.GetCfLosses()), ThousandsFormat(p.GetCfProfit())));
                     return;
                 }
             }
@@ -830,14 +830,18 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
                                     if (cfValue == 0)
                                     {
                                         p.AddBalance(c.second);
+                                        p.AddCfProfit(c.second);
                                         p.AddCfWin();
                                         c.first->AddCfLoss();
+                                        c.first->AddCfProfit(-c.second);
                                     }
                                     else
                                     {
                                         p.AddBalance(-c.second);
-                                        c.first->AddBalance(2 * c.second);
+                                        p.AddCfProfit(-c.second);
                                         p.AddCfLoss();
+                                        c.first->AddBalance(2 * c.second);
+                                        c.first->AddCfProfit(c.second);
                                         c.first->AddCfWin();
                                     }
                                     coinflips.erase(c.first);
@@ -972,7 +976,7 @@ void Bot::InitializePlayers()
         while (std::getline(ss, item, ','))
             tmp.push_back(std::stoi(item));
 
-        AddPlayer(Player(row[0].as<int64_t>(), row[1].as<double>(), this->guild_get_member_sync(SERVER_ID, dpp::snowflake(row[0].as<int64_t>())).get_nickname(), tmp, row[3].as<int>(), row[4].as<int>()));
+        AddPlayer(Player(row[0].as<int64_t>(), row[1].as<double>(), this->guild_get_member_sync(SERVER_ID, dpp::snowflake(row[0].as<int64_t>())).get_nickname(), tmp, row[3].as<int>(), row[4].as<int>(), row[5].as<double>()));
     }
 }
 
@@ -988,7 +992,7 @@ void Bot::MinerIncome()
     {
         p.AddBalance(p.GetIncome() * 5);
         pqxx::work W(conn);
-        W.exec_prepared("update_user", p.GetBalance(), p.GetInventory(), p.GetCfWins(), p.GetCfLosses(), p.GetUserID());
+        W.exec_prepared("update_user", p.GetBalance(), p.GetInventory(), p.GetCfWins(), p.GetCfLosses(), p.GetCfProfit(), p.GetUserID());
         W.commit();
     }
 }
