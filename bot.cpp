@@ -726,10 +726,16 @@ void Bot::CmdMine(const std::string& cmd, const dpp::parameter_list_t& param_lis
                 {
                     std::random_device rd;
                     std::mt19937 eng(rd());
-                    auto amt = std::uniform_int_distribution<>(150, 210)(eng);
+                    long amt;
+
+                    if (std::all_of(p.GetInventory().begin(), p.GetInventory().end(), [](int i){ return i == 0; }))//inventory is empty, all 0's
+                        amt = std::uniform_int_distribution<>(150, 210)(eng);
+                    else
+                        amt = std::uniform_int_distribution<long>(1.1 * p.GetIncome() * MINE_COOLDOWN / 1000, 1.5 * p.GetIncome() * MINE_COOLDOWN / 1000)(eng);
+
                     p.SetCooldown(millis);
                     p.AddBalance(amt);
-                    cs.message_event.value().reply(std::format("you mined {} bebbies {}", amt, p.GetUsername()));
+                    cs.message_event.value().reply(std::format("you mined {} bebbies {}", ThousandsFormat(amt), p.GetUsername()));
                 }
                 else
                 {
@@ -958,6 +964,34 @@ void Bot::CmdRichest(const std::string& cmd, const dpp::parameter_list_t& param_
 
         }
         cs.message_event.value().send(dpp::message(cs.channel_id, richestEmbed));
+    }
+}
+
+void Bot::CmdServer(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
+{
+    BOT_SPAM_CHECK
+    {
+        std::vector serverInv(miners.size(), 0);
+        double serverIncome = 0;
+        double serverBal = 0;
+        int playerCount = players.size();
+        for (const auto& p : players)
+        {
+            serverIncome += p.GetIncome();
+            serverBal += p.GetBalance();
+            for (int i = 0; i < miners.size(); i++)
+                serverInv[i] += p.GetInventoryItem(i);
+        }
+        dpp::embed invEmbed;
+        invEmbed.title = "Server Info";
+        invEmbed.color = 0x00DAFF;
+        invEmbed.add_field("Income", ThousandsFormat(serverIncome), true);
+        invEmbed.add_field("Bebbies", ThousandsFormat(serverBal), true);
+        invEmbed.add_field("Players", std::format("{}", playerCount), true);
+        for (int i = 0; i < miners.size(); i++)
+            invEmbed.add_field(MINERS[i], std::format("[{}]", serverInv[i]), true);
+
+        cs.message_event.value().send(dpp::message(cs.channel_id, invEmbed));
     }
 }
 

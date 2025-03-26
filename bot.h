@@ -80,6 +80,7 @@ public:
             cmd_handler.add_command("mine", {}, std::bind(&Bot::CmdMine, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Mine");
             cmd_handler.add_command("cf", { {"price/user", dpp::param_info(dpp::pt_string, false, "Amount/User")} }, std::bind(&Bot::CmdCoinflip, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "CF");
             cmd_handler.add_command("richest", {}, std::bind(&Bot::CmdRichest, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Richest");
+            cmd_handler.add_command("server", {}, std::bind(&Bot::CmdServer, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Server");
             //cmd_handler.register_commands(); not needed for non slash commands
         }
         );
@@ -228,6 +229,7 @@ public:
     void CmdMine(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdCoinflip(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdRichest(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
+    void CmdServer(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
     void PlayYoutube(dpp::discord_voice_client*) const;
     void PlaySound(dpp::discord_voice_client*) const;
     void PlayPCM(dpp::discord_voice_client*) const;
