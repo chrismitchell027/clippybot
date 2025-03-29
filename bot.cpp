@@ -503,13 +503,45 @@ void Bot::CmdSend(const std::string& cmd, const dpp::parameter_list_t& param_lis
 {
     BOT_SPAM_CHECK
     {
-        if (!(std::holds_alternative<dpp::resolved_user>(param_list[0].second) && std::holds_alternative<double>(param_list[1].second)))
+        if (!(std::holds_alternative<dpp::resolved_user>(param_list[0].second) && std::holds_alternative<std::string>(param_list[1].second) && !std::get<std::string>(param_list[1].second).empty()))
         {
             cs.message_event.value().reply("Usage: $send @someone bebbie_amount");
             return;
         }
         dpp::guild_member m = std::get<dpp::resolved_user>(param_list[0].second).member;
-        double amt = std::get<double>(param_list[1].second);
+
+        auto value = std::get<std::string>(param_list[1].second);
+
+        auto amt = std::stod(value);
+
+        auto lastChar = tolower(value.back());
+        if (lastChar == 'k' || lastChar == 'm' || lastChar == 'b' || lastChar == 't')
+        {
+            switch (lastChar)
+            {
+                case 'k':
+                {
+                    amt *= 1000;
+                    break;
+                }
+                case 'm':
+                {
+                    amt *= 1000000;
+                    break;
+                }
+                case 'b':
+                {
+                    amt *= 1000000000;
+                    break;
+                }
+                case 't':
+                {
+                    amt *= 1000000000000;
+                    break;
+                }
+            }
+        }
+
         if (amt <= 0.0)
         {
             cs.message_event.value().reply("Cannot send non-positive bebbie amount");
@@ -532,7 +564,7 @@ void Bot::CmdSend(const std::string& cmd, const dpp::parameter_list_t& param_lis
                         {
                             p.AddBalance(-amt);
                             r.AddBalance(amt);
-                            cs.message_event.value().reply(std::format("{} has sent {} {:.2f} bebbies", p.GetUsername(), r.GetUsername(), amt));
+                            cs.message_event.value().reply(std::format("{} has sent {} {} bebbies", p.GetUsername(), r.GetUsername(), ThousandsFormat(amt)));
                             return;
                         }
                         else
@@ -616,7 +648,7 @@ void Bot::CmdBuy(const std::string& cmd, const dpp::parameter_list_t& param_list
             return;
         }
         auto ItemID = std::stoi(std::get<std::string>(param_list[0].second)) - 1;
-        if (ItemID < 0 || ItemID > 10)
+        if (ItemID < 0 || ItemID > miners.size() - 1)
         {
             cs.message_event.value().reply("Item ID is out of bounds");
             return;
@@ -731,7 +763,7 @@ void Bot::CmdMine(const std::string& cmd, const dpp::parameter_list_t& param_lis
                     if (std::all_of(p.GetInventory().begin(), p.GetInventory().end(), [](int i){ return i == 0; }))//inventory is empty, all 0's
                         amt = std::uniform_int_distribution<>(150, 210)(eng);
                     else
-                        amt = std::uniform_int_distribution<long>(1.1 * p.GetIncome() * MINE_COOLDOWN / 1000, 1.5 * p.GetIncome() * MINE_COOLDOWN / 1000)(eng);
+                        amt = std::uniform_int_distribution<long>(5.0 * p.GetIncome() * MINE_COOLDOWN / 1000, 10.0 * p.GetIncome() * MINE_COOLDOWN / 1000)(eng);
 
                     p.SetCooldown(millis);
                     p.AddBalance(amt);
@@ -867,6 +899,34 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
             }
             else//if putting the cf up
             {
+                if (value == "all")
+                {
+                    for (auto& p : players)
+                    {
+                        if (p.GetUserID() == cs.issuer.id)
+                        {
+                            if (coinflips.find(&p) != coinflips.end())
+                            {
+                                cs.message_event.value().reply(std::format("Cannot have more than one coinflip up", p.GetUsername()));
+                                return;
+                            }
+                            if (p.GetBalance() > 0)
+                            {
+                                cs.message_event.value().reply(std::format("{} put up a coinflip for {}", p.GetUsername(), ThousandsFormat(p.GetBalance())));
+                                coinflips[&p] = p.GetBalance();
+                                p.AddBalance(-p.GetBalance());
+                                return;
+                            }
+                            else
+                                cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford the coinflip", p.GetUsername()));
+    
+                            return;
+                        }
+                    }
+                    cs.message_event.value().reply(REGISTER_MSG);
+                    return;
+                }
+
                 if (!isdigit(value[0]))
                 {
                     cs.message_event.value().reply(std::format("Invalid input"));

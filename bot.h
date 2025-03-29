@@ -71,7 +71,7 @@ public:
             cmd_handler.add_command("search", { {"search", dpp::param_info(dpp::pt_string, false, "search query")} }, std::bind(&Bot::CmdSearch, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Search video");
             cmd_handler.add_command("register", {}, std::bind(&Bot::CmdRegister, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Register");
             cmd_handler.add_command("bal", {}, std::bind(&Bot::CmdBalance, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Balance");
-            cmd_handler.add_command("send", { {"user", dpp::param_info(dpp::pt_user, false, "User to send bebbies to")}, {"amt", dpp::param_info(dpp::pt_double, false, "bebbies to send")} }, std::bind(&Bot::CmdSend, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Send bebbies");
+            cmd_handler.add_command("send", { {"user", dpp::param_info(dpp::pt_user, false, "User to send bebbies to")}, {"amt", dpp::param_info(dpp::pt_string, false, "bebbies to send")} }, std::bind(&Bot::CmdSend, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Send bebbies");
             cmd_handler.add_command("inv", {}, std::bind(&Bot::CmdInventory, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Inventory");
             cmd_handler.add_command("shop", {}, std::bind(&Bot::CmdShop, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Shop");
             cmd_handler.add_command("buy", { {"item", dpp::param_info(dpp::pt_string, false, "Item to buy")}, {"amount", dpp::param_info(dpp::pt_string, true, "Amount to buy")} }, std::bind(&Bot::CmdBuy, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Buy");
@@ -262,7 +262,7 @@ private:
         "yessssssssssssssssssss"
     };
 
-    const std::string MINERS[11] = 
+    const std::string MINERS[12] = 
     {
         "Sneaky Slave",
         "Quoin Counter",
@@ -274,7 +274,8 @@ private:
         "Nether Portal",
         "Sheckle Shiller",
         "Bebastian Plantation",
-        "Joe Miner"
+        "Joe Miner",
+        "Bebastian Remnant"
     };
 
     //    variables for reaction roles

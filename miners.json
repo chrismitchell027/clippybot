@@ -75,5 +75,12 @@
             "cost" : 75000000000.0,
             "production" : 10000000.0
         }
+    ],
+    "Bebastian Remnant" :
+    [
+        {
+            "cost" : 175000000000.0,
+            "production" : 99999999.0
+        }
     ]
 }
