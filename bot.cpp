@@ -1055,6 +1055,79 @@ void Bot::CmdServer(const std::string& cmd, const dpp::parameter_list_t& param_l
     }
 }
 
+void Bot::CmdStartLottery(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+{
+    BOT_SPAM_CHECK
+    {
+        if (m_bLottery)
+        {
+            cs.message_event.value().reply("Lottery already running");
+            return;
+        }
+
+        m_bLottery = true;
+        cs.message_event.value().reply("Lottery started - winner will be picked in 15 minutes");
+        start_timer([this](dpp::timer t)
+        {
+            this->m_bLottery = false;
+
+            unsigned int val;
+            getrandom(&val, 4, 0);
+            val %= this->lottery_entries.size();
+            int i = 0;
+            for (Player* p : this->lottery_entries)
+            {
+                if (i == val)
+                {
+                    p->AddBalance(this->lottery_entries.size() * 100000000000000.0);
+                    this->message_create(dpp::message(BOT_SPAM_ID, std::format("{} won {} bebbies in the lottery!", dpp::user::get_mention(p->GetUserID()), ThousandsFormat(this->lottery_entries.size() * 100000000000000.0))));
+                    break;
+                }
+                i++;
+            }
+            this->lottery_entries.clear();
+            this->stop_timer(t);
+        }
+        , 900);
+    }
+    
+}
+
+void Bot::CmdEnterLottery(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+{
+    BOT_SPAM_CHECK
+    {
+        if (!m_bLottery)
+        {
+            cs.message_event.value().reply("Lottery hasn't been started yet");
+            return;
+        }
+        for (auto &p : players)
+        {
+            if (p.GetUserID() == cs.issuer.id)
+            {
+                if (lottery_entries.find(&p) == lottery_entries.end())
+                {
+                    if (p.GetBalance() >= 100000000000000)
+                    {
+                        p.AddBalance(-100000000000000);
+                        lottery_entries.insert(&p);
+                        cs.message_event.value().reply("You're now entered in the lottery");
+                    }
+                    else
+                        cs.message_event.value().reply("You're broke");
+                }
+                else
+                    cs.message_event.value().reply("You already entered");
+                return;
+            }
+        }
+
+        cs.message_event.value().reply(REGISTER_MSG);
+    }
+    
+}
+
 void Bot::InitializePlayers()
 {
     pqxx::work W(conn);

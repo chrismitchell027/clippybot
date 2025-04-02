@@ -16,6 +16,7 @@
 #include <iomanip>
 #include <sys/random.h>
 #include <cctype>
+#include <unordered_set>
 
 extern std::vector<std::pair<std::string, std::string>> sounds;
 
@@ -81,6 +82,8 @@ public:
             cmd_handler.add_command("cf", { {"price/user", dpp::param_info(dpp::pt_string, false, "Amount/User")} }, std::bind(&Bot::CmdCoinflip, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "CF");
             cmd_handler.add_command("richest", {}, std::bind(&Bot::CmdRichest, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Richest");
             cmd_handler.add_command("server", {}, std::bind(&Bot::CmdServer, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Server");
+            cmd_handler.add_command("startlottery", {}, std::bind(&Bot::CmdStartLottery, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Start Lottery");
+            cmd_handler.add_command("enterlottery", {}, std::bind(&Bot::CmdEnterLottery, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Enter Lottery");
             //cmd_handler.register_commands(); not needed for non slash commands
         }
         );
@@ -230,6 +233,8 @@ public:
     void CmdCoinflip(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdRichest(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
     void CmdServer(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
+    void CmdStartLottery(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
+    void CmdEnterLottery(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void PlayYoutube(dpp::discord_voice_client*) const;
     void PlaySound(dpp::discord_voice_client*) const;
     void PlayPCM(dpp::discord_voice_client*) const;
@@ -307,6 +312,8 @@ private:
     pqxx::connection conn;
     std::vector<Player> players;
     std::unordered_map<Player*, double> coinflips;
+    bool m_bLottery = false;
+    std::unordered_set<Player*> lottery_entries;
 };
 
 #endif
