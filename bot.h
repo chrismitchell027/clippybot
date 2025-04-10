@@ -267,7 +267,7 @@ private:
         "yessssssssssssssssssss"
     };
 
-    const std::string MINERS[12] = 
+    const std::string MINERS[13] = 
     {
         "Sneaky Slave",
         "Quoin Counter",
@@ -280,7 +280,8 @@ private:
         "Sheckle Shiller",
         "Bebastian Plantation",
         "Joe Miner",
-        "Bebastian Remnant"
+        "Bebastian Remnant",
+        "Bebbie Volcano"
     };
 
     //    variables for reaction roles
