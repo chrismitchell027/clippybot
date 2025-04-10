@@ -86,8 +86,8 @@
     "Bebbie Volcano" :
     [
         {
-            "cost" : 500000000000.0,
-            "production" : 1000000000
+            "cost" : 750000000000.0,
+            "production" : 1000000000.0
         }
     ]
 }
