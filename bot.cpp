@@ -937,7 +937,7 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
                 auto amount = std::stod(value);
 
                 auto lastChar = tolower(value.back());
-                if (lastChar == 'k' || lastChar == 'm' || lastChar == 'b' || lastChar == 't')
+                if (lastChar == 'k' || lastChar == 'm' || lastChar == 'b' || lastChar == 't' || lastChar == 'q')
                 {
                     switch (lastChar)
                     {
@@ -959,6 +959,11 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
                         case 't':
                         {
                             amount *= 1000000000000;
+                            break;
+                        }
+                        case 'q':
+                        {
+                            amount *= 1000000000000000;
                             break;
                         }
                     }
