@@ -9,7 +9,6 @@
 #include <regex>
 #include <filesystem>
 #include <fstream>
-#include <pqxx/pqxx>
 #include <sstream>
 #include <algorithm>
 #include <chrono>
@@ -25,33 +24,9 @@ class Bot : public dpp::cluster
 public:
     Bot(uint32_t intents) : dpp::cluster("", dpp::intents::i_default_intents | intents), m_rDistribution(0, 10)
     {
-        conn = pqxx::connection("dbname=discord user=discord");
-        conn.prepare("insert_user", "INSERT INTO users VALUES ($1, $2, $3)");
-        conn.prepare("get_all_users", "SELECT id, balance, inventory, cfwins, cflosses, cfprofit FROM USERS");
-        conn.prepare("update_user", "UPDATE users SET balance = $1, inventory = $2, cfwins = $3, cflosses = $4, cfprofit = $5 WHERE id = $6");
-        //set up miners
-        miners = std::vector<std::pair<double,double>>();
-        std::ifstream minerfile("miners.json");
-        //ordered because it will sort alphabetically if not
-        nlohmann::json minerjson = nlohmann::ordered_json::parse(minerfile);
-        minerfile.close();
-        for (auto it = minerjson.items().begin(); it != minerjson.items().end(); ++it)
-        {
-            miners.push_back(std::make_pair(minerjson[it.key()][0].front(), minerjson[it.key()][0].back()));
-        } 
-
-        std::sort(miners.begin(), miners.end());
-
-        InitializePlayers();
-
-        start_timer([this](dpp::timer t)
-        {
-            this->MinerIncome();
-        }
-        , 5);
 
         sounds = std::vector<std::pair<std::string, std::string>>();
-        coinflips = std::unordered_map<Player*, double>();
+        coinflips = std::unordered_map<dpp::snowflake, double>();
 
         ReadSounds();
 
@@ -239,10 +214,6 @@ public:
     void PlaySound(dpp::discord_voice_client*) const;
     void PlayPCM(dpp::discord_voice_client*) const;
 
-    void AddPlayer(const Player& p);
-    void InitializePlayers();
-    void MinerIncome();
-
 private:
     /////////////////////
     /// const member vars
@@ -265,23 +236,6 @@ private:
         "They know, don't go home",
         "Every time I poop I think of you",
         "yessssssssssssssssssss"
-    };
-
-    const std::string MINERS[13] = 
-    {
-        "Sneaky Slave",
-        "Quoin Counter",
-        "Beb Miner",
-        "Folgies Factory",
-        "Beaky Bank",
-        "Seb Shipment",
-        "Alchemist Ashton",
-        "Nether Portal",
-        "Sheckle Shiller",
-        "Bebastian Plantation",
-        "Joe Miner",
-        "Bebastian Remnant",
-        "Bebbie Volcano"
     };
 
     //    variables for reaction roles
@@ -310,11 +264,9 @@ private:
     bool m_bNeedToSound = false;
     std::string m_szFileName;
     std::unordered_map<dpp::snowflake, dpp::snowflake> m_UserToChannel;
-    pqxx::connection conn;
-    std::vector<Player> players;
-    std::unordered_map<Player*, double> coinflips;
+    std::unordered_map<dpp::snowflake, double> coinflips;
     bool m_bLottery = false;
-    std::unordered_set<Player*> lottery_entries;
+    std::unordered_set<dpp::snowflake> lottery_entries;
 };
 
 #endif

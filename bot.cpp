@@ -1,4 +1,5 @@
 #include "bot.h"
+#include <future>
 
 #define BOT_SPAM_CHECK if (cs.channel_id == BOT_SPAM_ID)
 #define CLIPPY_ADMIN_CHECK if (cs.channel_id == CLIPPY_ADMIN_ID)
@@ -464,22 +465,33 @@ void Bot::CmdRegister(const std::string& cmd, const dpp::parameter_list_t& param
 {
     BOT_SPAM_CHECK
     {
-        pqxx::work W(conn);
-        try
-        {
-            W.exec_prepared("insert_user", (uint64_t)cs.issuer.id, 0, std::vector<int>(11, 0));
-            W.commit();
-        }
-        catch (const pqxx::unique_violation& e)
-        {
+        nlohmann::json request_data;
+        request_data["id"] = cs.issuer.id;
 
+        std::promise<dpp::http_request_completion_t> promise;
+        std::future<dpp::http_request_competion_t> future = promise.get_future();
+
+        this->request("localhost:3000/api/players", dpp:m_post, [&promise](const dpp::http_request_competion_t& r)
+        {
+            promise.set_value(r);
+        }, 
+        request_data.dump(), 
+        "application/json");
+
+        auto response = future.get();
+        
+        if (response.status == 400)
+        {
             cs.message_event.value().reply("You are already registered");
-            W.abort();
+            return;
+        }
+        else if (response.status != 201)//uhh this should not happen
+        {
+            *(int*)nullptr = 5;//self destruct
             return;
         }
 
         cs.message_event.value().reply("You have been registered successfully");
-        AddPlayer(Player((uint64_t)cs.issuer.id, 0, dpp::find_guild_member(SERVER_ID, cs.issuer.id).get_nickname()));
     }
 }
 
@@ -1131,40 +1143,4 @@ void Bot::CmdEnterLottery(const std::string& cmd, const dpp::parameter_list_t& p
         cs.message_event.value().reply(REGISTER_MSG);
     }
     
-}
-
-void Bot::InitializePlayers()
-{
-    pqxx::work W(conn);
-    pqxx::result R = W.exec_prepared("get_all_users");
-
-    for (const auto& row : R)
-    {
-        std::vector<int> tmp;
-        std::string inv_string = row[2].as<std::string>().substr(1, row[2].as<std::string>().size() - 2);
-        std::stringstream ss(inv_string);
-        std::string item;
-
-        while (std::getline(ss, item, ','))
-            tmp.push_back(std::stoi(item));
-
-        AddPlayer(Player(row[0].as<int64_t>(), row[1].as<double>(), this->guild_get_member_sync(SERVER_ID, dpp::snowflake(row[0].as<int64_t>())).get_nickname(), tmp, row[3].as<int>(), row[4].as<int>(), row[5].as<double>()));
-    }
-}
-
-void Bot::AddPlayer(const Player& p)
-{
-    players.push_back(p);
-    std::cout << p << "\n";
-}
-
-void Bot::MinerIncome()
-{
-    for (auto& p : players)
-    {
-        p.AddBalance(p.GetIncome() * 5);
-        pqxx::work W(conn);
-        W.exec_prepared("update_user", p.GetBalance(), p.GetInventory(), p.GetCfWins(), p.GetCfLosses(), p.GetCfProfit(), p.GetUserID());
-        W.commit();
-    }
 }
