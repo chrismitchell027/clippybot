@@ -461,6 +461,21 @@ void Bot::CmdDelete(const std::string& cmd, const dpp::parameter_list_t& param_l
     }
 }
 
+dpp::http_request_completion_t request_wrapper(dpp::cluster &cluster, std::string& url, dpp::http_method m, const nlohmann::json& data = nlohmann::json())
+{
+    std::promise<dpp::http_request_completion_t> promise;
+    std::future<dpp::http_request_competion_t> future = promise.get_future();
+
+    cluster->request(url, m, [&promise](const dpp::http_request_competion_t& r)
+    {
+        promise.set_value(r);
+    }, 
+    data.dump(), 
+    "application/json");
+
+    return future.get();
+}
+
 void Bot::CmdRegister(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     BOT_SPAM_CHECK
@@ -468,17 +483,7 @@ void Bot::CmdRegister(const std::string& cmd, const dpp::parameter_list_t& param
         nlohmann::json request_data;
         request_data["id"] = cs.issuer.id;
 
-        std::promise<dpp::http_request_completion_t> promise;
-        std::future<dpp::http_request_competion_t> future = promise.get_future();
-
-        this->request("localhost:3000/api/players", dpp:m_post, [&promise](const dpp::http_request_competion_t& r)
-        {
-            promise.set_value(r);
-        }, 
-        request_data.dump(), 
-        "application/json");
-
-        auto response = future.get();
+        auto response = request_wrapper(*this, "http://localhost:3000/api/players", dpp::m_post, request_data);
         
         if (response.status == 400)
         {
@@ -499,13 +504,12 @@ void Bot::CmdBalance(const std::string& cmd, const dpp::parameter_list_t& param_
 {
     BOT_SPAM_CHECK
     {
-        for (const auto& p : players)
+        auto response = request_wrapper(*this, std::format("http://localhost:3000/api/players/{}", cs.issuer.id), dpp::m_get);
+        if (response.status == 200)
         {
-            if (p.GetUserID() == cs.issuer.id)
-            {
-                cs.message_event.value().reply(std::format("You have {} bebbies", ThousandsFormat(p.GetBalance())));
-                return;
-            }
+            auto player = Player(nlohmann::json::parse(request.body));
+            cs.message_event.value().reply(std::format("You have {} bebbies", ThousandsFormat(p.GetBalance())));
+            return;
         }
         cs.message_event.value().reply(REGISTER_MSG);
     }
