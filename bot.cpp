@@ -1,5 +1,4 @@
 #include "bot.h"
-#include <future>
 
 #define BOT_SPAM_CHECK if (cs.channel_id == BOT_SPAM_ID)
 #define CLIPPY_ADMIN_CHECK if (cs.channel_id == CLIPPY_ADMIN_ID)
@@ -461,12 +460,12 @@ void Bot::CmdDelete(const std::string& cmd, const dpp::parameter_list_t& param_l
     }
 }
 
-dpp::http_request_completion_t request_wrapper(dpp::cluster &cluster, std::string& url, dpp::http_method m, const nlohmann::json& data = nlohmann::json())
+dpp::http_request_completion_t Bot::RequestWrapper(std::string url, dpp::http_method m, const nlohmann::json& data)
 {
     std::promise<dpp::http_request_completion_t> promise;
-    std::future<dpp::http_request_competion_t> future = promise.get_future();
+    std::future<dpp::http_request_completion_t> future = promise.get_future();
 
-    cluster->request(url, m, [&promise](const dpp::http_request_competion_t& r)
+    this->request(url, m, [&promise](const dpp::http_request_completion_t& r)
     {
         promise.set_value(r);
     }, 
@@ -476,6 +475,31 @@ dpp::http_request_completion_t request_wrapper(dpp::cluster &cluster, std::strin
     return future.get();
 }
 
+Player Bot::GetPlayer(dpp::snowflake id)
+{
+    auto response = RequestWrapper(std::format("http://localhost:3000/api/players/{}", (int64_t)id), dpp::m_get);
+
+    if (response.status == 200)
+        return Player(nlohmann::json::parse(response.body), this->guild_get_member_sync(SERVER_ID, id).get_nickname());
+    else
+        return Player();
+}
+
+std::vector<Player> Bot::GetAllPlayers()
+{
+    std::vector<Player> players;
+    auto response = RequestWrapper("http://localhost:3000/api/players", dpp::m_get);
+
+    if (response.status == 200)
+    {
+        for (const auto& j : nlohmann::json::parse(response.body))
+            players.push_back(Player(j, this->guild_get_member_sync(SERVER_ID, j["id"]).get_nickname()));
+    }
+    else
+        throw std::runtime_error("GetAllPlayers error");
+    return players;
+}
+
 void Bot::CmdRegister(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     BOT_SPAM_CHECK
@@ -483,7 +507,7 @@ void Bot::CmdRegister(const std::string& cmd, const dpp::parameter_list_t& param
         nlohmann::json request_data;
         request_data["id"] = cs.issuer.id;
 
-        auto response = request_wrapper(*this, "http://localhost:3000/api/players", dpp::m_post, request_data);
+        auto response = RequestWrapper("http://localhost:3000/api/players", dpp::m_post, request_data);
         
         if (response.status == 400)
         {
@@ -500,14 +524,13 @@ void Bot::CmdRegister(const std::string& cmd, const dpp::parameter_list_t& param
     }
 }
 
-void Bot::CmdBalance(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
+void Bot::CmdBalance(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     BOT_SPAM_CHECK
     {
-        auto response = request_wrapper(*this, std::format("http://localhost:3000/api/players/{}", cs.issuer.id), dpp::m_get);
-        if (response.status == 200)
+        auto p = GetPlayer(cs.issuer.id);
+        if (p.IsValid())
         {
-            auto player = Player(nlohmann::json::parse(request.body));
             cs.message_event.value().reply(std::format("You have {} bebbies", ThousandsFormat(p.GetBalance())));
             return;
         }
@@ -568,54 +591,27 @@ void Bot::CmdSend(const std::string& cmd, const dpp::parameter_list_t& param_lis
             cs.message_event.value().reply("Cannot send bebbies to yourself");
             return;
         }
-        for (auto& p : players)
-        {
-            if (p.GetUserID() == cs.issuer.id)
-            {
-                for (auto& r : players)
-                {
-                    if (r.GetUserID() == m.user_id)
-                    {
-                        if (p.GetBalance() >= amt)
-                        {
-                            p.AddBalance(-amt);
-                            r.AddBalance(amt);
-                            cs.message_event.value().reply(std::format("{} has sent {} {} bebbies", p.GetUsername(), r.GetUsername(), ThousandsFormat(amt)));
-                            return;
-                        }
-                        else
-                        {
-                            cs.message_event.value().reply("You don't have enough bebbies to send");
-                            return;
-                        }
-                    }
-                }
 
+        auto p = GetPlayer(cs.issuer.id);
+
+        if (p.IsValid())
+        {
+            auto r = GetPlayer(m.user_id);
+            if (!r.IsValid())
+            {
                 cs.message_event.value().reply("Recipient does not have an account");
                 return;
             }
-        }
-        cs.message_event.value().reply(REGISTER_MSG);
-    }
-}
-
-void Bot::CmdInventory(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
-{
-    BOT_SPAM_CHECK
-    {
-        for (const auto& p : players)
-        {
-            if (p.GetUserID() == cs.issuer.id)
+            if (p.GetBalance() >= amt)
             {
-                dpp::embed inventoryEmbed;
-                inventoryEmbed.title = "Inventory";
-                inventoryEmbed.color = 0x00DAFF;
-
-                for (int i = 0; i < p.GetInventory().size(); i++)
-                    inventoryEmbed.add_field(MINERS[i], std::format("{} Owned", p.GetInventoryItem(i)), true);
-
-
-                cs.message_event.value().send(dpp::message(cs.channel_id, inventoryEmbed));
+                p.AddBalance(-amt);
+                r.AddBalance(amt);
+                cs.message_event.value().reply(std::format("{} has sent {} {} bebbies", p.GetUsername(), r.GetUsername(), ThousandsFormat(amt)));
+                return;
+            }
+            else
+            {
+                cs.message_event.value().reply("You don't have enough bebbies to send");
                 return;
             }
         }
@@ -623,32 +619,55 @@ void Bot::CmdInventory(const std::string& cmd, const dpp::parameter_list_t& para
     }
 }
 
-void Bot::CmdShop(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
+void Bot::CmdInventory(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     BOT_SPAM_CHECK
     {
-        for (const auto& p : players)
+        auto p = GetPlayer(cs.issuer.id);
+        if (p.IsValid())
         {
-            if (p.GetUserID() == cs.issuer.id)
+            dpp::embed inventoryEmbed;
+            inventoryEmbed.title = "Inventory";
+            inventoryEmbed.color = 0x00DAFF;
+            auto miners = Player::GetMiners();
+
+            for (int i = 0; i < p.GetInventory().size(); i++)
+                inventoryEmbed.add_field(miners[i].name, std::format("{} Owned", p.GetInventoryItem(i)), true);
+
+
+            cs.message_event.value().send(dpp::message(cs.channel_id, inventoryEmbed));
+            return;
+        }
+        cs.message_event.value().reply(REGISTER_MSG);
+    }
+}
+
+void Bot::CmdShop(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+{
+    BOT_SPAM_CHECK
+    {
+        auto p = GetPlayer(cs.issuer.id);
+
+        if (p.IsValid())
+        {
+            dpp::embed inventoryEmbed;
+            inventoryEmbed.title = std::format("Bebbies Shop for {}", p.GetUsername());
+            inventoryEmbed.color = 0x00DAFF;
+            int ItemID = 0;
+            auto miners = Player::GetMiners();
+
+            for (int i = 0; i < p.GetInventory().size(); i++)
             {
-                dpp::embed inventoryEmbed;
-                inventoryEmbed.title = std::format("Bebbies Shop for {}", p.GetUsername());
-                inventoryEmbed.color = 0x00DAFF;
-                int ItemID = 0;
-
-                for (int i = 0; i < p.GetInventory().size(); i++)
-                {
-                    inventoryEmbed.add_field(
-                    std::format("Tier {} [{} Owned]", ItemID + 1, p.GetInventoryItem(i)), 
-                    std::format("{}\nProduction: {} per second\nCost: {} bebbies", MINERS[i], ThousandsFormat(miners[i].second), ThousandsFormat(p.GetPrice(i))), 
-                    true);
-                    ItemID++;
-                }
-
-
-                cs.message_event.value().send(dpp::message(cs.channel_id, inventoryEmbed));
-                return;
+                inventoryEmbed.add_field(
+                std::format("Tier {} [{} Owned]", ItemID + 1, p.GetInventoryItem(i)), 
+                std::format("{}\nProduction: {} per second\nCost: {} bebbies", miners[i].name, ThousandsFormat(miners[i].production), ThousandsFormat(p.GetPrice(miners, i))), 
+                true);
+                ItemID++;
             }
+
+
+            cs.message_event.value().send(dpp::message(cs.channel_id, inventoryEmbed));
+            return;
         }
         cs.message_event.value().reply(REGISTER_MSG);
     }
@@ -664,7 +683,7 @@ void Bot::CmdBuy(const std::string& cmd, const dpp::parameter_list_t& param_list
             return;
         }
         auto ItemID = std::stoi(std::get<std::string>(param_list[0].second)) - 1;
-        if (ItemID < 0 || ItemID > miners.size() - 1)
+        if (ItemID < 0 || ItemID > Player::GetMiners().size() - 1)
         {
             cs.message_event.value().reply("Item ID is out of bounds");
             return;
@@ -679,60 +698,42 @@ void Bot::CmdBuy(const std::string& cmd, const dpp::parameter_list_t& param_list
                 return;
             }
             double totalPrice = 0;
-            for (auto&p : players)
+            auto p = GetPlayer(cs.issuer.id);
+            if (p.IsValid())
             {
-                if (p.GetUserID() == cs.issuer.id)
+                auto miners = Player::GetMiners();
+                for (int i = 0; i < amount; i++)
+                    totalPrice += p.GetPrice(miners, ItemID, i + 1 + p.GetInventoryItem(ItemID));
+                
+                if (p.GetBalance() >= totalPrice)
                 {
                     for (int i = 0; i < amount; i++)
-                        totalPrice += p.GetPrice(ItemID, i + 1 + p.GetInventoryItem(ItemID));
-
-                    if (p.GetBalance() >= totalPrice)
-                    {
-                        for (int i = 0; i < amount; i++)
-                            p.BuyItem(ItemID);
-                        
-                        cs.message_event.value().reply(std::format("{} bought {} {}'s for {}", p.GetUsername(), amount, MINERS[ItemID], ThousandsFormat(totalPrice)));
-                        return;
-                    }
-                    else
-                    {
-                        cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford {} {}'s for {}", p.GetUsername(), amount, MINERS[ItemID], ThousandsFormat(totalPrice)));
-                        return;
-                    }
+                        p.BuyItem(miners, ItemID);
+                    
+                    cs.message_event.value().reply(std::format("{} bought {} {}'s for {}", p.GetUsername(), amount, miners[ItemID].name, ThousandsFormat(totalPrice)));
+                    return;
+                }
+                else
+                {
+                    cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford {} {}'s for {}", p.GetUsername(), amount, miners[ItemID].name, ThousandsFormat(totalPrice)));
+                    return;
                 }
             }
         }
         else
         {
-            for (auto& p : players)
+            auto p = GetPlayer(cs.issuer.id);
+            if (p.IsValid())
             {
-                if (p.GetUserID() == cs.issuer.id)
+                auto miners = Player::GetMiners();
+                auto itemPrice = p.GetPrice(miners, ItemID);
+                if (p.GetBalance() >= itemPrice)
                 {
-                    auto itemPrice = p.GetPrice(ItemID);
-                    if (p.GetBalance() >= itemPrice)
-                    {
-                        p.BuyItem(ItemID);
-                        cs.message_event.value().reply(std::format("{} bought {} for {}", p.GetUsername(), MINERS[ItemID], ThousandsFormat(itemPrice)));
-                    }
-                    else
-                        cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford a {} for {}", p.GetUsername(), MINERS[ItemID], ThousandsFormat(itemPrice)));
-                    return;
+                    p.BuyItem(miners, ItemID);
+                    cs.message_event.value().reply(std::format("{} bought {} for {}", p.GetUsername(), miners[ItemID].name, ThousandsFormat(itemPrice)));
                 }
-            }
-        }
-        cs.message_event.value().reply(REGISTER_MSG);
-    }
-}
-
-void Bot::CmdIncome(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
-{
-    BOT_SPAM_CHECK
-    {
-        for (const auto& p : players)
-        {
-            if (p.GetUserID() == cs.issuer.id)
-            {
-                cs.message_event.value().reply(std::format("{} is currently mining {} bebbies per second", p.GetUsername(), ThousandsFormat(p.GetIncome())));
+                else
+                    cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford a {} for {}", p.GetUsername(), miners[ItemID].name, ThousandsFormat(itemPrice)));
                 return;
             }
         }
@@ -740,7 +741,21 @@ void Bot::CmdIncome(const std::string& cmd, const dpp::parameter_list_t& param_l
     }
 }
 
-void Bot::CmdVault(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
+void Bot::CmdIncome(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+{
+    BOT_SPAM_CHECK
+    {
+        auto p = GetPlayer(cs.issuer.id);
+        if (p.IsValid())
+        {
+            cs.message_event.value().reply(std::format("{} is currently mining {} bebbies per second", p.GetUsername(), ThousandsFormat(p.GetIncome())));
+            return;
+        }
+        cs.message_event.value().reply(REGISTER_MSG);
+    }
+}
+
+void Bot::CmdVault(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     BOT_SPAM_CHECK
     {
@@ -748,6 +763,8 @@ void Bot::CmdVault(const std::string& cmd, const dpp::parameter_list_t& param_li
         vaultEmbed.title = "Bebbies Vault";
         vaultEmbed.color = 0x00DAFF;
         int i = 0;
+        
+        auto players = GetAllPlayers();
         for (const auto& p : players)
         {
             i++;
@@ -765,32 +782,30 @@ void Bot::CmdMine(const std::string& cmd, const dpp::parameter_list_t& param_lis
 {
     BOT_SPAM_CHECK
     {
-        for (auto& p : players)
+        auto p = GetPlayer(cs.issuer.id);
+        if (p.IsValid())
         {
-            if (p.GetUserID() == cs.issuer.id)
+            auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            if (millis - p.GetCooldown() >= MINE_COOLDOWN)
             {
-                auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                if (millis - p.GetCooldown() >= MINE_COOLDOWN)
-                {
-                    std::random_device rd;
-                    std::mt19937 eng(rd());
-                    long amt;
+                std::random_device rd;
+                std::mt19937 eng(rd());
+                long amt;
 
-                    if (std::all_of(p.GetInventory().begin(), p.GetInventory().end(), [](int i){ return i == 0; }))//inventory is empty, all 0's
-                        amt = std::uniform_int_distribution<>(150, 210)(eng);
-                    else
-                        amt = std::uniform_int_distribution<long>(5.0 * p.GetIncome() * MINE_COOLDOWN / 1000, 10.0 * p.GetIncome() * MINE_COOLDOWN / 1000)(eng);
-
-                    p.SetCooldown(millis);
-                    p.AddBalance(amt);
-                    cs.message_event.value().reply(std::format("you mined {} bebbies {}", ThousandsFormat(amt), p.GetUsername()));
-                }
+                if (std::all_of(p.GetInventory().begin(), p.GetInventory().end(), [](int i){ return i == 0; }))//inventory is empty, all 0's
+                    amt = std::uniform_int_distribution<>(150, 210)(eng);
                 else
-                {
-                    cs.message_event.value().reply(std::format("too soon man, you gotta wait {:.1f} seconds to mine again.", double(MINE_COOLDOWN - (millis - p.GetCooldown())) / 1000.0));
-                }
-                return;
+                    amt = std::uniform_int_distribution<long>(5.0 * p.GetIncome() * MINE_COOLDOWN / 1000, 10.0 * p.GetIncome() * MINE_COOLDOWN / 1000)(eng);
+
+                p.SetCooldown(millis);
+                p.AddBalance(amt);
+                cs.message_event.value().reply(std::format("you mined {} bebbies {}", ThousandsFormat(amt), p.GetUsername()));
             }
+            else
+            {
+                cs.message_event.value().reply(std::format("too soon man, you gotta wait {:.1f} seconds to mine again.", double(MINE_COOLDOWN - (millis - p.GetCooldown())) / 1000.0));
+            }
+            return;
         }
         cs.message_event.value().reply(REGISTER_MSG);
     }
@@ -798,7 +813,8 @@ void Bot::CmdMine(const std::string& cmd, const dpp::parameter_list_t& param_lis
 
 void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
-    BOT_SPAM_CHECK
+    //temporary 
+    /* BOT_SPAM_CHECK
     {
         if (!std::holds_alternative<std::string>(param_list[0].second) || std::get<std::string>(param_list[0].second).empty())
         {
@@ -870,9 +886,9 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
                             {
                                 if (p.GetBalance() >= c.second)
                                 {
-                                    /* std::random_device rd;
-                                    std::mt19937 eng(rd());
-                                    auto cfValue = std::uniform_int_distribution<>(0, 1)(eng); */
+                                    // std::random_device rd;
+                                    //std::mt19937 eng(rd());
+                                    //auto cfValue = std::uniform_int_distribution<>(0, 1)(eng);
                                     int cfValue;
                                     getrandom(&cfValue, 4, 0);
                                     if (cfValue < 0)
@@ -1018,10 +1034,10 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
         }
 
         cs.message_event.value().reply(REGISTER_MSG);
-    }
+    } */
 }
 
-void Bot::CmdRichest(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
+void Bot::CmdRichest(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     BOT_SPAM_CHECK
     {
@@ -1029,7 +1045,7 @@ void Bot::CmdRichest(const std::string& cmd, const dpp::parameter_list_t& param_
         richestEmbed.title = "Richest Players";
         richestEmbed.color = 0x00DAFF;
         int i = 0;
-        std::vector<Player> richestPlayers = players;
+        std::vector<Player> richestPlayers = GetAllPlayers();
         std::sort(richestPlayers.begin(), richestPlayers.end(), [](const Player& a, const Player& b)
         {
             return a.GetBalance() > b.GetBalance();
@@ -1048,13 +1064,15 @@ void Bot::CmdRichest(const std::string& cmd, const dpp::parameter_list_t& param_
     }
 }
 
-void Bot::CmdServer(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs) const
+void Bot::CmdServer(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     BOT_SPAM_CHECK
     {
+        auto miners = Player::GetMiners();
         std::vector serverInv(miners.size(), 0);
         double serverIncome = 0;
         double serverBal = 0;
+        auto players = GetAllPlayers();
         int playerCount = players.size();
         for (const auto& p : players)
         {
@@ -1070,7 +1088,7 @@ void Bot::CmdServer(const std::string& cmd, const dpp::parameter_list_t& param_l
         invEmbed.add_field("Bebbies", ThousandsFormat(serverBal), true);
         invEmbed.add_field("Players", std::format("{}", playerCount), true);
         for (int i = 0; i < miners.size(); i++)
-            invEmbed.add_field(MINERS[i], std::format("[{}]", serverInv[i]), true);
+            invEmbed.add_field(miners[i].name, std::format("[{}]", serverInv[i]), true);
 
         cs.message_event.value().send(dpp::message(cs.channel_id, invEmbed));
     }
@@ -1078,7 +1096,7 @@ void Bot::CmdServer(const std::string& cmd, const dpp::parameter_list_t& param_l
 
 void Bot::CmdStartLottery(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
-    BOT_SPAM_CHECK
+    /* BOT_SPAM_CHECK
     {
         if (m_bLottery)
         {
@@ -1110,13 +1128,13 @@ void Bot::CmdStartLottery(const std::string& cmd, const dpp::parameter_list_t& p
             this->stop_timer(t);
         }
         , 900);
-    }
+    } */
     
 }
 
 void Bot::CmdEnterLottery(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
-    BOT_SPAM_CHECK
+    /* BOT_SPAM_CHECK
     {
         if (!m_bLottery)
         {
@@ -1145,6 +1163,6 @@ void Bot::CmdEnterLottery(const std::string& cmd, const dpp::parameter_list_t& p
         }
 
         cs.message_event.value().reply(REGISTER_MSG);
-    }
+    } */
     
 }

@@ -24,7 +24,7 @@ class Bot : public dpp::cluster
 public:
     Bot(uint32_t intents) : dpp::cluster("", dpp::intents::i_default_intents | intents), m_rDistribution(0, 10)
     {
-
+        Player::SetCluster(this);
         sounds = std::vector<std::pair<std::string, std::string>>();
         coinflips = std::unordered_map<dpp::snowflake, double>();
 
@@ -197,22 +197,28 @@ public:
     void CmdDelete(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdSearch(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdRegister(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
-    void CmdBalance(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
+    void CmdBalance(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdSend(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
-    void CmdInventory(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
-    void CmdShop(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
+    void CmdInventory(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
+    void CmdShop(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdBuy(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
-    void CmdIncome(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
-    void CmdVault(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
+    void CmdIncome(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
+    void CmdVault(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdMine(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdCoinflip(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
-    void CmdRichest(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
-    void CmdServer(const std::string&, const dpp::parameter_list_t&, dpp::command_source) const;
+    void CmdRichest(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
+    void CmdServer(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdStartLottery(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdEnterLottery(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void PlayYoutube(dpp::discord_voice_client*) const;
     void PlaySound(dpp::discord_voice_client*) const;
     void PlayPCM(dpp::discord_voice_client*) const;
+
+    dpp::http_request_completion_t RequestWrapper(std::string url, dpp::http_method m, const nlohmann::json& data = nlohmann::json());
+
+    Player GetPlayer(dpp::snowflake);
+
+    std::vector<Player> GetAllPlayers();
 
 private:
     /////////////////////
