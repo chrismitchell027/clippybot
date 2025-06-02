@@ -490,6 +490,8 @@ Player Bot::GetPlayer(dpp::snowflake id)
         catch (const dpp::cache_exception& e)
         {
             //member not in cache
+            auto msg = std::format("{} not in cache", (int64_t)id);
+            this->log(dpp::ll_info, msg);
             return Player(nlohmann::json::parse(response.body), this->guild_get_member_sync(SERVER_ID, id).get_nickname());
         }
     }
@@ -513,6 +515,8 @@ std::vector<Player> Bot::GetAllPlayers()
             }
             catch (const dpp::cache_exception& e)
             {
+                auto msg = std::format("{} not in cache", (int64_t)j["id"]);
+                this->log(dpp::ll_info, msg);
                 players.push_back(Player(j, this->guild_get_member_sync(SERVER_ID, j["id"]).get_nickname()));
             }
         }
@@ -561,6 +565,42 @@ void Bot::CmdBalance(const std::string& cmd, const dpp::parameter_list_t& param_
     }
 }
 
+double ConvertMoney(std::string& m)
+{
+    auto amt = std::stod(m);
+
+    auto lastChar = tolower(m.back());
+
+    if (lastChar == 'k' || lastChar == 'm' || lastChar == 'b' || lastChar == 't')
+    {
+        switch (lastChar)
+        {
+            case 'k':
+            {
+                amt *= 1000;
+                break;
+            }
+            case 'm':
+            {
+                amt *= 1000000;
+                break;
+            }
+            case 'b':
+            {
+                amt *= 1000000000;
+                break;
+            }
+            case 't':
+            {
+                amt *= 1000000000000;
+                break;
+            }
+        }
+    }
+
+    return amt;
+}
+
 void Bot::CmdSend(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     BOT_SPAM_CHECK
@@ -572,37 +612,8 @@ void Bot::CmdSend(const std::string& cmd, const dpp::parameter_list_t& param_lis
         }
         dpp::guild_member m = std::get<dpp::resolved_user>(param_list[0].second).member;
 
-        auto value = std::get<std::string>(param_list[1].second);
-
-        auto amt = std::stod(value);
-
-        auto lastChar = tolower(value.back());
-        if (lastChar == 'k' || lastChar == 'm' || lastChar == 'b' || lastChar == 't')
-        {
-            switch (lastChar)
-            {
-                case 'k':
-                {
-                    amt *= 1000;
-                    break;
-                }
-                case 'm':
-                {
-                    amt *= 1000000;
-                    break;
-                }
-                case 'b':
-                {
-                    amt *= 1000000000;
-                    break;
-                }
-                case 't':
-                {
-                    amt *= 1000000000000;
-                    break;
-                }
-            }
-        }
+        auto bebbie_amount = std::get<std::string>(param_list[1].second);
+        auto amt = ConvertMoney(bebbie_amount);
 
         if (amt <= 0.0)
         {
