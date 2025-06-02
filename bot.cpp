@@ -480,7 +480,19 @@ Player Bot::GetPlayer(dpp::snowflake id)
     auto response = RequestWrapper(std::format("http://localhost:3000/api/players/{}", (int64_t)id), dpp::m_get);
 
     if (response.status == 200)
-        return Player(nlohmann::json::parse(response.body), this->guild_get_member_sync(SERVER_ID, id).get_nickname());
+    {
+        try 
+        {
+            //member in cache
+            auto m = dpp::find_guild_member(SERVER_ID, id);
+            return Player(nlohmann::json::parse(response.body), m.get_nickname());
+        }
+        catch (const dpp::cache_exception& e)
+        {
+            //member not in cache
+            return Player(nlohmann::json::parse(response.body), this->guild_get_member_sync(SERVER_ID, id).get_nickname());
+        }
+    }
     else
         return Player();
 }
@@ -493,10 +505,21 @@ std::vector<Player> Bot::GetAllPlayers()
     if (response.status == 200)
     {
         for (const auto& j : nlohmann::json::parse(response.body))
-            players.push_back(Player(j, this->guild_get_member_sync(SERVER_ID, j["id"]).get_nickname()));
+        {
+            try
+            {
+                auto m = dpp::find_guild_member(SERVER_ID, j["id"]);
+                players.push_back(Player(j, m.get_nickname()));
+            }
+            catch (const dpp::cache_exception& e)
+            {
+                players.push_back(Player(j, this->guild_get_member_sync(SERVER_ID, j["id"]).get_nickname()));
+            }
+        }
     }
     else
         throw std::runtime_error("GetAllPlayers error");
+
     return players;
 }
 
