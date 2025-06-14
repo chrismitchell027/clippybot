@@ -26,7 +26,7 @@ public:
     {
         Player::SetCluster(this);
         sounds = std::vector<std::pair<std::string, std::string>>();
-        coinflips = std::unordered_map<dpp::snowflake, double>();
+        //coinflips = std::unordered_map<dpp::snowflake, double>();
 
         ReadSounds();
 
@@ -220,6 +220,8 @@ public:
 
     std::vector<Player> GetAllPlayers();
 
+    std::unordered_map<dpp::snowflake, double> GetCoinflips();
+
 private:
     /////////////////////
     /// const member vars
@@ -270,7 +272,7 @@ private:
     bool m_bNeedToSound = false;
     std::string m_szFileName;
     std::unordered_map<dpp::snowflake, dpp::snowflake> m_UserToChannel;
-    std::unordered_map<dpp::snowflake, double> coinflips;
+    //std::unordered_map<dpp::snowflake, double> coinflips;
     bool m_bLottery = false;
     std::unordered_set<dpp::snowflake> lottery_entries;
 };

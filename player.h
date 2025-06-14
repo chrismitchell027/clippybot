@@ -27,7 +27,7 @@ public:
         ResetIncome();
     } */
 
-    Player(const nlohmann::json& data, const std::string& name) : m_snoUserID(data["id"]), m_dBalance(data["balance"]), m_szUsername(name), m_iCfWins(data["cfwins"]), m_iCfLosses(data["cflosses"]), m_dCfProfit(data["cfprofit"]), m_dIncome(data["income"])
+    Player(const nlohmann::json& data, const std::string& name) : m_snoUserID(data["id"]), m_dBalance(data["balance"]), m_szUsername(name), m_iCfWins(data["cfwins"]), m_iCfLosses(data["cflosses"]), m_dCfProfit(data["cfprofit"]), m_dIncome(data["income"]), m_iCooldown(data["cooldown"])
     {
 
         for (const auto& amt : data["inventory"])

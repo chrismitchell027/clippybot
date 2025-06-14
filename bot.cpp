@@ -819,8 +819,8 @@ void Bot::CmdMine(const std::string& cmd, const dpp::parameter_list_t& param_lis
         auto p = GetPlayer(cs.issuer.id);
         if (p.IsValid())
         {
-            auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-            if (millis - p.GetCooldown() >= MINE_COOLDOWN)
+            auto seconds = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            if (seconds >= p.GetCooldown())
             {
                 std::random_device rd;
                 std::mt19937 eng(rd());
@@ -831,13 +831,13 @@ void Bot::CmdMine(const std::string& cmd, const dpp::parameter_list_t& param_lis
                 else
                     amt = std::uniform_int_distribution<long>(5.0 * p.GetIncome() * MINE_COOLDOWN / 1000, 10.0 * p.GetIncome() * MINE_COOLDOWN / 1000)(eng);
 
-                p.SetCooldown(millis);
+                p.SetCooldown(seconds);
                 p.AddBalance(amt);
                 cs.message_event.value().reply(std::format("you mined {} bebbies {}", ThousandsFormat(amt), p.GetUsername()));
             }
             else
             {
-                cs.message_event.value().reply(std::format("too soon man, you gotta wait {:.1f} seconds to mine again.", double(MINE_COOLDOWN - (millis - p.GetCooldown())) / 1000.0));
+                cs.message_event.value().reply(std::format("too soon man, you gotta wait {:.1f} seconds to mine again.", double(p.GetCooldown() - seconds)));
             }
             return;
         }
@@ -845,23 +845,38 @@ void Bot::CmdMine(const std::string& cmd, const dpp::parameter_list_t& param_lis
     }
 }
 
+std::unordered_map<dpp::snowflake, double> Bot::GetCoinflips()
+{
+    auto response = RequestWrapper("http://localhost:3000/api/coinflips", dpp::m_get);
+    auto coinflips = nlohmann::json::parse(response.body);
+
+    std::unordered_map<dpp::snowflake, double> cfs;
+
+    for (const auto& [id, amount] : coinflips.items())
+        cfs[std::stoll(id)] = amount;
+
+    return cfs;
+}
+
 void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
-    //temporary 
-    /* BOT_SPAM_CHECK
+    BOT_SPAM_CHECK
     {
         if (!std::holds_alternative<std::string>(param_list[0].second) || std::get<std::string>(param_list[0].second).empty())
         {
             dpp::embed cfEmbed;
             cfEmbed.title = "Coinflips";
             cfEmbed.color = 0x00DAFF;
-            for (const auto& c : coinflips)
+
+            auto coinflips = GetCoinflips();
+
+            for (const auto& [id, amount] : coinflips)
             {
                 cfEmbed.add_field(
-                std::format("{}", c.first->GetUsername()), 
-                std::format("{} bebbies", ThousandsFormat(c.second)),
-                true);
-    
+                    std::format("{}", GetPlayer(id).GetUsername()),
+                    std::format("{} bebbies", ThousandsFormat(amount)),
+                    true
+                );
             }
             cs.message_event.value().send(dpp::message(cs.channel_id, cfEmbed));
             cs.message_event.value().reply("Usage: $cf bebbies/user");
@@ -871,36 +886,38 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
 
         if (value == "stats")
         {
-            for (const auto& p : players)
+            auto p = GetPlayer(cs.issuer.id);
+            if (p.IsValid())
             {
-                if (p.GetUserID() == cs.issuer.id)
-                {
-                    cs.message_event.value().reply(std::format("Coinflip stats for {}: {} wins and {} losses, {:.2f}% win rate, {} bebbies profit", p.GetUsername(), p.GetCfWins(), p.GetCfLosses(),  (double)(p.GetCfWins() * 100) / (p.GetCfWins() + p.GetCfLosses()), ThousandsFormat(p.GetCfProfit())));
-                    return;
-                }
+                cs.message_event.value().reply(std::format("Coinflip stats for {}: {} wins and {} losses, {:.2f}% win rate, {} bebbies profit", p.GetUsername(), p.GetCfWins(), p.GetCfLosses(),  (double)(p.GetCfWins() * 100) / (p.GetCfWins() + p.GetCfLosses()), ThousandsFormat(p.GetCfProfit())));
+                return;
             }
             cs.message_event.value().reply(REGISTER_MSG);
             return;
         }
         else if (value == "cancel")
         {
-            for (auto &p : players)
+            auto p = GetPlayer(cs.issuer.id);
+            if (p.IsValid())
             {
-                if (p.GetUserID() == cs.issuer.id)
+                auto coinflips = GetCoinflips();
+
+                if (coinflips.find(p.GetUserID()) != coinflips.end())//if player has a coinflip up
                 {
-                    if (coinflips.find(&p) != coinflips.end())
-                    {
-                        auto cfValue = coinflips[&p];
-                        p.AddBalance(cfValue);
+                    auto cfValue = coinflips[p.GetUserID()];
+                    auto response = RequestWrapper(std::format("http://localhost:3000/api/coinflips/{}", p.GetUserID()), dpp::m_delete);
+
+                    if (response.status == 200)
                         cs.message_event.value().reply(std::format("Coinflip cancelled, {} bebbies refunded", ThousandsFormat(cfValue)));
-                        coinflips.erase(&p);
-                        return;
-                    }
                     else
-                    {
-                        cs.message_event.value().reply("No coinflip found");
-                        return;
-                    }
+                        throw std::runtime_error("Coinflip deletion error");
+
+                    return;
+                }
+                else
+                {
+                    cs.message_event.value().reply("No coinflip found");
+                    return;
                 }
             }
             cs.message_event.value().reply(REGISTER_MSG);
@@ -908,56 +925,33 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
         }
         else
         {
-            if (value.substr(0, 2) == "<@")//if performing the actual cf
+            if (value.length() == 21 && value.substr(0, 2) == "<@")//if performing the actual cf
             {
-                for (auto& p : players)
+                auto p = GetPlayer(cs.issuer.id);
+                if (p.IsValid())
                 {
-                    if (p.GetUserID() == cs.issuer.id)//if this is command sender
-                    {
-                        for (auto& c : coinflips)
-                        {
-                            if (c.first->GetUserID() == std::stol(value.substr(2, 18)) && std::stol(value.substr(2, 18)) != p.GetUserID())
-                            {
-                                if (p.GetBalance() >= c.second)
-                                {
-                                    // std::random_device rd;
-                                    //std::mt19937 eng(rd());
-                                    //auto cfValue = std::uniform_int_distribution<>(0, 1)(eng);
-                                    int cfValue;
-                                    getrandom(&cfValue, 4, 0);
-                                    if (cfValue < 0)
-                                        cfValue = 0;
-                                    else
-                                        cfValue = 1;
+                    auto coinflips = GetCoinflips();
 
-                                    cs.message_event.value().reply(std::format("{} won the coinflip!", cfValue == 0 ? p.GetUsername() : c.first->GetUsername()));
-                                    if (cfValue == 0)
-                                    {
-                                        p.AddBalance(c.second);
-                                        p.AddCfProfit(c.second);
-                                        p.AddCfWin();
-                                        c.first->AddCfLoss();
-                                        c.first->AddCfProfit(-c.second);
-                                    }
-                                    else
-                                    {
-                                        p.AddBalance(-c.second);
-                                        p.AddCfProfit(-c.second);
-                                        p.AddCfLoss();
-                                        c.first->AddBalance(2 * c.second);
-                                        c.first->AddCfProfit(c.second);
-                                        c.first->AddCfWin();
-                                    }
-                                    coinflips.erase(c.first);
-                                    return;
-                                }
-                                else
-                                {
-                                    cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford the coinflip", p.GetUsername()));
-                                    return;
-                                }
-                            }
+                    auto player2 = GetPlayer(std::stoll(value.substr(2, 18)));
+
+                    if (coinflips.find(player2.GetUserID()) != coinflips.end())//if player2 has a coinflip up
+                    {
+                        if (p.GetBalance() >= coinflips[player2.GetUserID()])
+                        {
+                            auto response = RequestWrapper(std::format("http://localhost:3000/api/coinflips/{}/{}", player2.GetUserID(), p.GetUserID()), dpp::m_put);
+                            bool winner = nlohmann::json::parse(response.body)["winner"];
+
+                            cs.message_event.value().reply(std::format("{} won the coinflip!", winner ? player2.GetUsername() : p.GetUsername()));
+                            return;
                         }
+                        else
+                        {
+                            cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford the coinflip", p.GetUsername()));
+                            return;
+                        }
+                    }
+                    else
+                    {
                         cs.message_event.value().reply("No coinflip found");
                         return;
                     }
@@ -967,27 +961,30 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
             {
                 if (value == "all")
                 {
-                    for (auto& p : players)
+                    auto p = GetPlayer(cs.issuer.id);
+                    if (p.IsValid())
                     {
-                        if (p.GetUserID() == cs.issuer.id)
+                        auto coinflips = GetCoinflips();
+                        if (coinflips.find(p.GetUserID()) != coinflips.end())
                         {
-                            if (coinflips.find(&p) != coinflips.end())
-                            {
-                                cs.message_event.value().reply(std::format("Cannot have more than one coinflip up", p.GetUsername()));
-                                return;
-                            }
-                            if (p.GetBalance() > 0)
-                            {
-                                cs.message_event.value().reply(std::format("{} put up a coinflip for {}", p.GetUsername(), ThousandsFormat(p.GetBalance())));
-                                coinflips[&p] = p.GetBalance();
-                                p.AddBalance(-p.GetBalance());
-                                return;
-                            }
-                            else
-                                cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford the coinflip", p.GetUsername()));
-    
+                            cs.message_event.value().reply(std::format("Cannot have more than one coinflip up", p.GetUsername()));
                             return;
                         }
+
+                        if (p.GetBalance() > 0)
+                        {
+                            auto response = RequestWrapper(std::format("http://localhost:3000/api/coinflips/{}/{}", p.GetUserID(), p.GetBalance()), dpp::m_post);
+
+                            if (response.status != 200)
+                                throw std::runtime_error("Coinflip creation error");
+
+                            cs.message_event.value().reply(std::format("{} put up a coinflip for {}", p.GetUsername(), ThousandsFormat(p.GetBalance())));
+                            return;
+                        }
+                        else
+                            cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford the coinflip", p.GetUsername()));
+
+                        return;
                     }
                     cs.message_event.value().reply(REGISTER_MSG);
                     return;
@@ -1000,40 +997,7 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
                 }
                 //std::remove(value.begin(), value.end(), ',');
 
-                auto amount = std::stod(value);
-
-                auto lastChar = tolower(value.back());
-                if (lastChar == 'k' || lastChar == 'm' || lastChar == 'b' || lastChar == 't' || lastChar == 'q')
-                {
-                    switch (lastChar)
-                    {
-                        case 'k':
-                        {
-                            amount *= 1000;
-                            break;
-                        }
-                        case 'm':
-                        {
-                            amount *= 1000000;
-                            break;
-                        }
-                        case 'b':
-                        {
-                            amount *= 1000000000;
-                            break;
-                        }
-                        case 't':
-                        {
-                            amount *= 1000000000000;
-                            break;
-                        }
-                        case 'q':
-                        {
-                            amount *= 1000000000000000;
-                            break;
-                        }
-                    }
-                }
+                auto amount = ConvertMoney(value);
 
                 if (amount < 0)
                 {
@@ -1041,34 +1005,38 @@ void Bot::CmdCoinflip(const std::string& cmd, const dpp::parameter_list_t& param
                     return;
                 }
 
-                for (auto& p : players)
-                {
-                    if (p.GetUserID() == cs.issuer.id)
-                    {
-                        if (coinflips.find(&p) != coinflips.end())
-                        {
-                            cs.message_event.value().reply(std::format("Cannot have more than one coinflip up", p.GetUsername()));
-                            return;
-                        }
-                        if (p.GetBalance() >= amount)
-                        {
-                            p.AddBalance(-amount);
-                            cs.message_event.value().reply(std::format("{} put up a coinflip for {}", p.GetUsername(), ThousandsFormat(amount)));
-                            coinflips[&p] = amount;
-                            return;
-                        }
-                        else
-                            cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford the coinflip", p.GetUsername()));
+                auto p = GetPlayer(cs.issuer.id);
 
+                if (p.IsValid())
+                {
+                    auto coinflips = GetCoinflips();
+
+                    if (coinflips.find(p.GetUserID()) != coinflips.end())
+                    {
+                        cs.message_event.value().reply(std::format("Cannot have more than one coinflip up", p.GetUsername()));
                         return;
                     }
+                    if (p.GetBalance() >= amount)
+                    {
+                        auto response = RequestWrapper(std::format("http://localhost:3000/api/coinflips/{}/{}", p.GetUserID(), amount), dpp::m_post);
+
+                            if (response.status != 200)
+                                throw std::runtime_error("Coinflip creation error");
+
+                        cs.message_event.value().reply(std::format("{} put up a coinflip for {}", p.GetUsername(), ThousandsFormat(amount)));
+                        return;
+                    }
+                    else
+                        cs.message_event.value().reply(std::format("{} is a broke boy and cannot afford the coinflip", p.GetUsername()));
+
+                    return;
                 }
 
             }
         }
 
         cs.message_event.value().reply(REGISTER_MSG);
-    } */
+    }
 }
 
 void Bot::CmdRichest(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)

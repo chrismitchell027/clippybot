@@ -137,6 +137,11 @@ int64_t Player::GetCooldown() const
 
 void Player::SetCooldown(int64_t c)
 {
+    auto response = RequestWrapper(std::format("http://localhost:3000/api/players/{}/cooldown", m_snoUserID), dpp::m_post);
+
+    if (response.status != 200)
+        throw std::runtime_error("API call made with invalid player");
+
     m_iCooldown = c;
 }
 
