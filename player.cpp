@@ -94,10 +94,11 @@ void Player::AddBalance(double amount)
 
 bool Player::BuyItem(std::vector<Player::Miner>& miners, int itemID)
 {
-    double price = GetPrice(miners, itemID);
-    AddBalance(-price);
-    m_vInventory[itemID]++;
-    m_dIncome += miners[itemID].production;
+    auto response = RequestWrapper(std::format("http://localhost:3000/api/players/{}/inventory/{}", m_snoUserID, itemID), dpp::m_post);
+
+    if (response.status == 404)
+        throw std::runtime_error("API call made with invalid player");
+
     return true;
 }
 
