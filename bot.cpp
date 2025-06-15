@@ -1096,6 +1096,21 @@ void Bot::CmdServer(const std::string& cmd, const dpp::parameter_list_t& param_l
     }
 }
 
+void Bot::CmdSoundStats(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+{
+    BOT_SPAM_CHECK
+    {
+        auto p = GetPlayer(cs.issuer.id);
+        
+        if (p.IsValid())
+        {
+            cs.message_event.value().reply(std::format("You have {} sounds added to clippy", p.GetSoundCount()));
+            return;
+        }
+        cs.message_event.value().reply(REGISTER_MSG);
+    }
+}
+
 void Bot::CmdStartLottery(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     /* BOT_SPAM_CHECK

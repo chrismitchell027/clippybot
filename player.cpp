@@ -200,3 +200,8 @@ void Player::SetCluster(dpp::cluster *cluster)
 {
     c = cluster;
 }
+
+int Player::GetSoundCount()
+{
+    return m_iSounds;
+}
