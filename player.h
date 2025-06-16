@@ -27,7 +27,7 @@ public:
         ResetIncome();
     } */
 
-    Player(const nlohmann::json& data, const std::string& name) : m_snoUserID(data["id"]), m_dBalance(data["balance"]), m_szUsername(name), m_iCfWins(data["cfwins"]), m_iCfLosses(data["cflosses"]), m_dCfProfit(data["cfprofit"]), m_dIncome(data["income"]), m_iCooldown(data["cooldown"]), m_iSounds(data["sounds"])
+    Player(const nlohmann::json& data, const std::string& name, int soundcount) : m_snoUserID(data["id"]), m_dBalance(data["balance"]), m_szUsername(name), m_iCfWins(data["cfwins"]), m_iCfLosses(data["cflosses"]), m_dCfProfit(data["cfprofit"]), m_dIncome(data["income"]), m_iCooldown(data["cooldown"]), m_iSounds(soundcount)
     {
 
         for (const auto& amt : data["inventory"])
@@ -66,6 +66,7 @@ public:
     double GetCfProfit() const;
     void AddCfProfit(double p);
     bool IsValid() const;
+    int GetSoundCount() const;
 
     friend std::ostream& operator<<(std::ostream& os, const Player& player)
     {

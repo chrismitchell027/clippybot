@@ -59,6 +59,7 @@ public:
             cmd_handler.add_command("server", {}, std::bind(&Bot::CmdServer, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Server");
             cmd_handler.add_command("startlottery", {}, std::bind(&Bot::CmdStartLottery, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Start Lottery");
             cmd_handler.add_command("enterlottery", {}, std::bind(&Bot::CmdEnterLottery, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Enter Lottery");
+            cmd_handler.add_command("soundstats", {}, std::bind(&Bot::CmdSoundStats, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), "Sound stats");
             //cmd_handler.register_commands(); not needed for non slash commands
         }
         );
@@ -210,6 +211,7 @@ public:
     void CmdServer(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdStartLottery(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void CmdEnterLottery(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
+    void CmdSoundStats(const std::string&, const dpp::parameter_list_t&, dpp::command_source);
     void PlayYoutube(dpp::discord_voice_client*) const;
     void PlaySound(dpp::discord_voice_client*) const;
     void PlayPCM(dpp::discord_voice_client*) const;
@@ -275,6 +277,7 @@ private:
     //std::unordered_map<dpp::snowflake, double> coinflips;
     bool m_bLottery = false;
     std::unordered_set<dpp::snowflake> lottery_entries;
+    std::unordered_map<dpp::snowflake, int> m_mSoundCount;
 };
 
 #endif

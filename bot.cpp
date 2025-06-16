@@ -79,7 +79,10 @@ void Bot::ReadSounds()
     nlohmann::json soundjson = nlohmann::ordered_json::parse(soundfile);
 
     for (auto it = soundjson.items().begin(); it != soundjson.items().end(); ++it)
+    {
         sounds.push_back(std::make_pair(it.key(), soundjson[it.key()]["type"]));
+        m_mSoundCount[soundjson[it.key()]["author"]]++;
+    }
 }
 
 void Bot::AddSound(std::string sound, dpp::snowflake author)
@@ -481,18 +484,19 @@ Player Bot::GetPlayer(dpp::snowflake id)
 
     if (response.status == 200)
     {
+        int soundcount = m_mSoundCount.find(id) != m_mSoundCount.end() ? m_mSoundCount[id] : 0;
         try 
         {
             //member in cache
             auto m = dpp::find_guild_member(SERVER_ID, id);
-            return Player(nlohmann::json::parse(response.body), m.get_nickname());
+            return Player(nlohmann::json::parse(response.body), m.get_nickname(), soundcount);
         }
         catch (const dpp::cache_exception& e)
         {
             //member not in cache
             auto msg = std::format("{} not in cache", (int64_t)id);
             this->log(dpp::ll_info, msg);
-            return Player(nlohmann::json::parse(response.body), this->guild_get_member_sync(SERVER_ID, id).get_nickname());
+            return Player(nlohmann::json::parse(response.body), this->guild_get_member_sync(SERVER_ID, id).get_nickname(), soundcount);
         }
     }
     else
@@ -508,16 +512,17 @@ std::vector<Player> Bot::GetAllPlayers()
     {
         for (const auto& j : nlohmann::json::parse(response.body))
         {
+            int soundcount = m_mSoundCount.find(j["id"]) != m_mSoundCount.end() ? m_mSoundCount[j["id"]] : 0;
             try
             {
                 auto m = dpp::find_guild_member(SERVER_ID, j["id"]);
-                players.push_back(Player(j, m.get_nickname()));
+                players.push_back(Player(j, m.get_nickname(), soundcount));
             }
             catch (const dpp::cache_exception& e)
             {
                 auto msg = std::format("{} not in cache", (int64_t)j["id"]);
                 this->log(dpp::ll_info, msg);
-                players.push_back(Player(j, this->guild_get_member_sync(SERVER_ID, j["id"]).get_nickname()));
+                players.push_back(Player(j, this->guild_get_member_sync(SERVER_ID, j["id"]).get_nickname(), soundcount));
             }
         }
     }
