@@ -249,7 +249,7 @@ void Bot::CmdPlay(const std::string& cmd, const dpp::parameter_list_t& param_lis
         }
 
         dpp::guild *g = dpp::find_guild(cs.guild_id);
-        dpp::voiceconn *v = cs.message_event.value().from->get_voice(cs.guild_id);
+        dpp::voiceconn *v = cs.message_event.value().from()->get_voice(cs.guild_id);
 
         system(std::format("yt-dlp -x --audio-format mp3 https://www.youtube.com/watch?v={} -o yt.mp3", match.str()).c_str());
 
@@ -261,7 +261,7 @@ void Bot::CmdPlay(const std::string& cmd, const dpp::parameter_list_t& param_lis
         //not in the same channel
         else if(v != nullptr)
         {
-            cs.message_event.value().from->disconnect_voice(cs.guild_id);
+            cs.message_event.value().from()->disconnect_voice(cs.guild_id);
             //g->connect_member_voice(cs.issuer.id, false, true);
 
             start_timer([g, cs, this](dpp::timer t)
@@ -300,7 +300,7 @@ void Bot::CmdSearch(const std::string& cmd, const dpp::parameter_list_t& param_l
         }
 
         dpp::guild *g = dpp::find_guild(cs.guild_id);
-        dpp::voiceconn *v = cs.message_event.value().from->get_voice(cs.guild_id);
+        dpp::voiceconn *v = cs.message_event.value().from()->get_voice(cs.guild_id);
 
         system(std::format("yt-dlp -x --audio-format mp3 \"ytsearch:{}\" -o yt.mp3", match.str()).c_str());
 
@@ -312,7 +312,7 @@ void Bot::CmdSearch(const std::string& cmd, const dpp::parameter_list_t& param_l
         //not in the same channel
         else if(v != nullptr)
         {
-            cs.message_event.value().from->disconnect_voice(cs.guild_id);
+            cs.message_event.value().from()->disconnect_voice(cs.guild_id);
             //g->connect_member_voice(cs.issuer.id, false, true);
 
             start_timer([g, cs, this](dpp::timer t)
@@ -336,7 +336,7 @@ void Bot::CmdStop(const std::string& cmd, const dpp::parameter_list_t& param_lis
 {
     BOT_SPAM_CHECK
     {
-        dpp::voiceconn *v = cs.message_event.value().from->get_voice(cs.guild_id);
+        dpp::voiceconn *v = cs.message_event.value().from()->get_voice(cs.guild_id);
         if (v && v->voiceclient)
             v->voiceclient->stop_audio();
     }
@@ -347,11 +347,11 @@ void Bot::CmdSummon(const std::string& cmd, const dpp::parameter_list_t& param_l
     BOT_SPAM_CHECK
     {
         dpp::guild *g = dpp::find_guild(cs.guild_id);
-        dpp::voiceconn *v = cs.message_event.value().from->get_voice(cs.guild_id);
+        dpp::voiceconn *v = cs.message_event.value().from()->get_voice(cs.guild_id);
 
         if (v != nullptr && g->voice_members[cs.issuer.id].channel_id != v->channel_id)
         {
-            cs.message_event.value().from->disconnect_voice(cs.guild_id);
+            cs.message_event.value().from()->disconnect_voice(cs.guild_id);
             //g->connect_member_voice(cs.issuer.id, false, true);
             start_timer([g, cs, this](dpp::timer t)
             {
@@ -398,7 +398,7 @@ void Bot::CmdSounds(const std::string& cmd, const dpp::parameter_list_t& param_l
                 }
 
                 dpp::guild *g = dpp::find_guild(cs.guild_id);
-                dpp::voiceconn *v = cs.message_event.value().from->get_voice(cs.guild_id);
+                dpp::voiceconn *v = cs.message_event.value().from()->get_voice(cs.guild_id);
 
                 //in the same channel
                 if (v != nullptr && g->voice_members[cs.issuer.id].channel_id == v->channel_id)
@@ -406,7 +406,7 @@ void Bot::CmdSounds(const std::string& cmd, const dpp::parameter_list_t& param_l
                 //not in the same channel
                 else if(v != nullptr)
                 {
-                    cs.message_event.value().from->disconnect_voice(cs.guild_id);
+                    cs.message_event.value().from()->disconnect_voice(cs.guild_id);
                     //g->connect_member_voice(cs.issuer.id, false, true);
                     start_timer([g, cs, this](dpp::timer t)
                     {
@@ -496,7 +496,9 @@ Player Bot::GetPlayer(dpp::snowflake id)
             //member not in cache
             auto msg = std::format("{} not in cache", (int64_t)id);
             this->log(dpp::ll_info, msg);
-            return Player(nlohmann::json::parse(response.body), this->guild_get_member_sync(SERVER_ID, id).get_nickname(), soundcount);
+            *(int*)nullptr = 5;
+            return Player();
+            //return Player(nlohmann::json::parse(response.body), this->guild_get_member_sync(SERVER_ID, id).get_nickname(), soundcount);
         }
     }
     else
@@ -522,7 +524,8 @@ std::vector<Player> Bot::GetAllPlayers()
             {
                 auto msg = std::format("{} not in cache", (int64_t)j["id"]);
                 this->log(dpp::ll_info, msg);
-                players.push_back(Player(j, this->guild_get_member_sync(SERVER_ID, j["id"]).get_nickname(), soundcount));
+                *(int*)nullptr = 5;
+                //players.push_back(Player(j, this->guild_get_member_sync(SERVER_ID, j["id"]).get_nickname(), soundcount));
             }
         }
     }

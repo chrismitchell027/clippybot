@@ -88,7 +88,9 @@ public:
         {
             if (event.state.user_id != me.id && event.state.channel_id != AFK_ID)
             {
-                dpp::voiceconn *v = event.from->get_voice(event.state.guild_id);
+                dpp::voiceconn *v = event.from()->get_voice(event.state.guild_id);
+                if (v)
+                    std::cout << "Bot thinks it is in channel " << v->channel_id << '\n';
                 m_szFileName = "sounds/welcomeback.raw";
                 dpp::guild *g = dpp::find_guild(event.state.guild_id);
                 if (m_UserToChannel.find(event.state.user_id) != m_UserToChannel.end())//user is found in map
@@ -103,7 +105,7 @@ public:
                         //not in the same channel
                         else if(v != nullptr)
                         {
-                            event.from->disconnect_voice(event.state.guild_id);
+                            event.from()->disconnect_voice(event.state.guild_id);
                             //g->connect_member_voice(event.state.user_id, false, true);
                             start_timer([g, event, this](dpp::timer t)
                             {
@@ -133,7 +135,7 @@ public:
                         //not in the same channel
                         else if(v != nullptr)
                         {
-                            event.from->disconnect_voice(event.state.guild_id);
+                            event.from()->disconnect_voice(event.state.guild_id);
                             g->connect_member_voice(event.state.user_id, false, true);
                             m_bNeedToSound = true;
                         }
