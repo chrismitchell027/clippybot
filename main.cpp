@@ -6,5 +6,6 @@ int main()
 {
     mpg123_init();
     Bot bot(dpp::intents::i_guild_members | dpp::intents::i_message_content);
+    std::cout << "Bot done running\n";
     return 0;
 }

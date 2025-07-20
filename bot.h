@@ -63,6 +63,7 @@ public:
             //cmd_handler.register_commands(); not needed for non slash commands
         }
         );
+  
 
         on_voice_ready([this](const dpp::voice_ready_t& event)
         {
@@ -89,8 +90,6 @@ public:
             if (event.state.user_id != me.id && event.state.channel_id != AFK_ID)
             {
                 dpp::voiceconn *v = event.from()->get_voice(event.state.guild_id);
-                if (v)
-                    std::cout << "Bot thinks it is in channel " << v->channel_id << '\n';
                 m_szFileName = "sounds/welcomeback.raw";
                 dpp::guild *g = dpp::find_guild(event.state.guild_id);
                 if (m_UserToChannel.find(event.state.user_id) != m_UserToChannel.end())//user is found in map

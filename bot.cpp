@@ -349,6 +349,12 @@ void Bot::CmdSummon(const std::string& cmd, const dpp::parameter_list_t& param_l
         dpp::guild *g = dpp::find_guild(cs.guild_id);
         dpp::voiceconn *v = cs.message_event.value().from()->get_voice(cs.guild_id);
 
+        if (v) {
+            std::string msg = std::format("active: {}, ready: {}", v->is_active(), v->is_ready());
+
+            this->log(dpp::ll_info, msg);
+        }
+
         if (v != nullptr && g->voice_members[cs.issuer.id].channel_id != v->channel_id)
         {
             cs.message_event.value().from()->disconnect_voice(cs.guild_id);
