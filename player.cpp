@@ -205,3 +205,13 @@ int Player::GetSoundCount() const
 {
     return m_iSounds;
 }
+
+void Player::SetJoinSound(std::string& sound)
+{
+    m_szJoinSound = sound;
+}
+
+const std::string& Player::GetJoinSound() const
+{
+    return m_szJoinSound;
+}

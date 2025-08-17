@@ -90,7 +90,11 @@ public:
             if (event.state.user_id != me.id && event.state.channel_id != AFK_ID)
             {
                 dpp::voiceconn *v = event.from()->get_voice(event.state.guild_id);
-                m_szFileName = "sounds/welcomeback.raw";
+                auto p = GetPlayer(event.state.user_id);
+                if (p.GetJoinSound() == "")
+                    m_szFileName = "sounds/welcomeback.raw";
+                else
+                    m_szFileName = "sounds/saved_sounds/" + p.GetJoinSound();
                 dpp::guild *g = dpp::find_guild(event.state.guild_id);
                 if (m_UserToChannel.find(event.state.user_id) != m_UserToChannel.end())//user is found in map
                 {
@@ -99,7 +103,8 @@ public:
                         //in the same channel
                         if (v != nullptr && event.state.channel_id == v->channel_id)
                         {
-                            PlayPCM(v->voiceclient);
+                            start_timer([this, v](dpp::timer t) { PlayPCM(v->voiceclient); stop_timer(t); }, 1);
+                            //PlayPCM(v->voiceclient);
                         }
                         //not in the same channel
                         else if(v != nullptr)
