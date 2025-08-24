@@ -113,7 +113,7 @@ public:
                             //g->connect_member_voice(event.state.user_id, false, true);
                             start_timer([g, event, this](dpp::timer t)
                             {
-                                g->connect_member_voice(event.state.user_id, false, true);
+                                g->connect_member_voice(*this, event.state.user_id, false, true);
                                 stop_timer(t);
                             }
                             , 2);
@@ -122,7 +122,7 @@ public:
                         //not connected at all
                         else
                         {
-                            g->connect_member_voice(event.state.user_id, false, true);
+                            g->connect_member_voice(*this, event.state.user_id, false, true);
                             m_bNeedToSound = true;
                         }
                     }
@@ -140,13 +140,13 @@ public:
                         else if(v != nullptr)
                         {
                             event.from()->disconnect_voice(event.state.guild_id);
-                            g->connect_member_voice(event.state.user_id, false, true);
+                            g->connect_member_voice(*this, event.state.user_id, false, true);
                             m_bNeedToSound = true;
                         }
                         //not connected at all
                         else
                         {
-                            g->connect_member_voice(event.state.user_id, false, true);
+                            g->connect_member_voice(*this, event.state.user_id, false, true);
                             m_bNeedToSound = true;
                         }
                     }
