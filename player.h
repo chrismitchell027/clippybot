@@ -67,7 +67,7 @@ public:
     void AddCfProfit(double p);
     bool IsValid() const;
     int GetSoundCount() const;
-    void SetJoinSound(std::string&);
+    void SetJoinSound(const std::string&);
     const std::string& GetJoinSound() const;
 
     friend std::ostream& operator<<(std::ostream& os, const Player& player)

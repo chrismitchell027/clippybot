@@ -206,8 +206,13 @@ int Player::GetSoundCount() const
     return m_iSounds;
 }
 
-void Player::SetJoinSound(std::string& sound)
+void Player::SetJoinSound(const std::string& sound)
 {
+    auto response = RequestWrapper(std::format("http://localhost:3000/api/players/{}/{}", m_snoUserID, sound), dpp::m_post);
+
+    if (response.status != 200)
+        throw std::runtime_error("API call made with invalid player");
+
     m_szJoinSound = sound;
 }
 

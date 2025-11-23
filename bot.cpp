@@ -1125,6 +1125,51 @@ void Bot::CmdSoundStats(const std::string& cmd, const dpp::parameter_list_t& par
     }
 }
 
+void Bot::CmdJoinSound(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
+{
+    BOT_SPAM_CHECK
+    {
+        std::string param = std::get<std::string>(param_list[0].second);
+        if (param.empty())
+        {
+            cs.message_event.value().reply("Use $sounds to list the sounds");
+            return;
+        }
+
+        if (param == "sop" || param == "bb" || param == "bcs" || param == "fuckyou")
+        {
+            cs.message_event.value().reply("buhhhh no");
+            return;
+        }
+
+        auto p = GetPlayer(cs.issuer.id);
+
+        if (!p.IsValid())
+        {
+            cs.message_event.value().reply(REGISTER_MSG);
+            return;
+        }
+
+        for (auto s : sounds)
+        {
+            if (s.first == param)
+            {
+                std::string joinSound = std::format("sounds/saved_sounds/{}.{}", s.first, s.second);
+                if (!std::filesystem::exists(joinSound))
+                {
+                    cs.message_event.value().reply(std::format("Error: {}.{} doesn't exist", s.first, s.second));
+                    return;
+                }
+
+                p.SetJoinSound(std::format("{}.{}", s.first, s.second));
+                cs.message_event.value().reply(std::format("Your join sound is now {}", s.first));
+                return;
+            }
+        }
+        cs.message_event.value().reply(std::format("Sound {} doesn't exist", param));
+    }
+}
+
 void Bot::CmdStartLottery(const std::string& cmd, const dpp::parameter_list_t& param_list, dpp::command_source cs)
 {
     /* BOT_SPAM_CHECK
